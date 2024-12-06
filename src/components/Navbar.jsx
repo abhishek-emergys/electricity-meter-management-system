@@ -1,12 +1,94 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 const Navbar = () => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const Navigate = useNavigate();
+
+  const dropdownRef = useRef(null);
+  const avatarButtonRef = useRef(null);
+
+  const toggleDropdown = () => {
+    setDropdownOpen((prevState) => !prevState);
+  };
+
+  const fetchUser = async () => {
+    const token = localStorage.getItem("userToken");
+    const response = await fetch(
+      "http://192.168.0.160:8080/api/auth/user-profile",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "6024",
+        },
+      }
+    );
+    const newData = await response.json();
+    setName(newData.profile.username);
+    setEmail(newData.profile.email);
+  };
+
+  useEffect(() => {
+    fetchUser();
+
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        avatarButtonRef.current &&
+        !avatarButtonRef.current.contains(event.target)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    const confirm = await Swal.fire({
+      title: "Logout Confirmation",
+      text: "Are you sure you want to do logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Confirm",
+    });
+
+    if (confirm.isConfirmed) {
+      const showSuccessMessage = () => {
+        toast.success("Logout successful", {
+          position: "top-center",
+        });
+      };
+
+      showSuccessMessage();
+      localStorage.removeItem("userToken");
+      setTimeout(() => {
+        Navigate("/login");
+      }, 800);
+    }
+  };
+
   return (
     <div>
+      <ToastContainer />
       <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <Link
-            to="/"
+            to="/dashboard"
             className="flex items-center space-x-3 rtl:space-x-reverse"
           >
             <img
@@ -18,14 +100,51 @@ const Navbar = () => {
               Meter Wise
             </span>
           </Link>
-          <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-            <button
-              type="button"
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            >
-              LOGOUT
-            </button>
+
+          <div
+            ref={avatarButtonRef}
+            className="cursor-pointer relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600"
+            id="avatarButton"
+            onClick={toggleDropdown}
+          >
+            <span className="font-medium text-gray-600 dark:text-gray-300">
+              {name
+                .split(" ")
+                .map((w) => w[0])
+                .join("")}
+            </span>
           </div>
+
+          {dropdownOpen && (
+            <div
+              ref={dropdownRef}
+              id="userDropdown"
+              className="z-20 mt-56 mr-4 absolute right-0 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
+            >
+              <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                <div>{name}</div>
+                <div className="font-medium truncate">{email}</div>
+              </div>
+              <ul
+                className="py-2 text-sm text-gray-700"
+                aria-labelledby="avatarButton"
+              >
+                <li>
+                  <Link className="block px-4 py-2 hover:bg-gray-100">
+                    Profile
+                  </Link>
+                </li>
+              </ul>
+              <div className="py-1">
+                <Link
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 "
+                  onClick={handleSignOut}
+                >
+                  Sign out
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     </div>
