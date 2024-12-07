@@ -12,6 +12,10 @@ const loginSchema = z.object({
 const Login = () => {
   const Navigate = useNavigate();
   const [isLoding, setIsLoding] = useState(false);
+  const [role, setRole] = useState('');
+
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
 
   const [formData, setFormData] = useState({
     email: "",
@@ -45,7 +49,7 @@ const Login = () => {
       loginSchema.parse(formData);
 
       const response = await fetch(
-        "http://192.168.0.160:8080/api/auth/login",
+        `${BASE_URL}/api/auth/login`,
         {
           method: "POST",
           headers: {
@@ -69,7 +73,16 @@ const Login = () => {
 
         setTimeout(() => {
           localStorage.setItem("userToken", data.token);
-          localStorage.setItem("roleId", data.role_id);
+          console.log(typeof data.role_id);
+          
+          if(data.role_id === 1) {
+            localStorage.setItem("roleId", 'admin');
+          }
+
+          if(data.role_id === 2) {
+            localStorage.setItem("roleId", 'user');
+          }
+
           Navigate("/dashboard");
         }, 800);
 

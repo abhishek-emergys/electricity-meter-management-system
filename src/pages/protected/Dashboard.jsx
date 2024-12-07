@@ -19,29 +19,28 @@ const fileValidationSchema = z.object({
 const Dashboard = () => {
   const [file, setFile] = useState(null);
   const [totalUsers, setTotalUsers] = useState();
-  const [monthWiseData, setMonthWiseData] = useState();
+  const [totalConsumption, setTotalConsumption] = useState();
+  const [totalMeters, setTotalMeters] = useState();
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchUser = async () => {
     const token = localStorage.getItem("userToken");
-    const response = await fetch(
-      "http://192.168.0.160:8080/api/auth/admin-getAllUsers",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "ngrok-skip-browser-warning": "6024",
-        },
-      }
-    );
+    const response = await fetch(`${BASE_URL}/api/auth/admin-getAllUsers`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "6024",
+      },
+    });
     const newData = await response.json();
     setTotalUsers(newData.users.length);
   };
 
-  const fetchUserMonthWiseData = async () => {
+  const fetchConsumption = async () => {
     const token = localStorage.getItem("userToken");
     const response = await fetch(
-      "http://192.168.0.160:8080/api/auth/monthly_user_chart",
+      `${BASE_URL}/api/auth/yearly_consumption_chart`,
       {
         method: "GET",
         headers: {
@@ -52,11 +51,36 @@ const Dashboard = () => {
       }
     );
     const newData = await response.json();
-    // console.log("fetchUserMonthWiseData ", newData);
+    const totalConsumption = newData.yearlyData.reduce(
+      (acc, data) => acc + data.totalConsumption,
+      0
+    );
+    setTotalConsumption(totalConsumption);
+  };
+
+  const fetchMeters = async () => {
+    const token = localStorage.getItem("userToken");
+    const response = await fetch(`${BASE_URL}/api/auth/yearly_meter_chart`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "6024",
+      },
+    });
+    const newData = await response.json();
+    const totalMeters = newData.yearlyData.reduce(
+      (acc, data) => acc + data.totalMeters,
+      0
+    );
+
+    setTotalMeters(totalMeters);
   };
 
   useEffect(() => {
     fetchUser();
+    fetchConsumption();
+    fetchMeters();
   }, []);
 
   const handleFileChange = (e) => {
@@ -85,11 +109,11 @@ const Dashboard = () => {
     <div>
       <Sidebar />
       <ToastContainer />
-      <div className="p-4 sm:ml-52">
-        <div className="p-2 rounded-lg dark:border-gray-700 mt-14">
+      <div className="p-4 sm:ml-52 overflow-hidden">
+        <div className="p-2 rounded-lg dark:border-gray-700 mt-12">
           <div className="flex justify-between">
             <div>
-              <p className="text-xl font-semibold text-gray-700 pl-4 pb-2">
+              <p className="text-xl font-semibold text-gray-700 pl-[0.7rem] pb-2">
                 Dashboard
               </p>
             </div>
@@ -125,8 +149,8 @@ const Dashboard = () => {
           </div>
 
           {/* CARDS START*/}
-          <div className="flex gap-8 justify-around">
-            <div className="block max-w-72 h-24 w-72  text-left p-4 bg-white border border-gray-200 rounded-lg shadow">
+          <div className="flex justify-around">
+            <div className="block max-w-80 h-24 w-80  text-left p-4 bg-white border border-gray-200 rounded-lg shadow">
               <div className="flex justify-between items-center">
                 <div>
                   <h5 className="mb-1 text-lg  font-bold tracking-tight text-gray-900">
@@ -141,13 +165,15 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="block max-w-72 h-24 w-72 text-left p-4 bg-white border border-gray-200 rounded-lg shadow ">
+            <div className="block max-w-80 h-24 w-80 text-left p-4 bg-white border border-gray-200 rounded-lg shadow ">
               <div className="flex justify-between items-center">
                 <div>
-                  <h5 className="mb-1 text-lg  font-bold tracking-tight text-gray-900">
+                  <h5 className="mb-1 text-lg font-bold tracking-tight text-gray-900">
                     Total Consumption
                   </h5>
-                  <p className="font-normal text-gray-700 ">16000 kWh</p>
+                  <p className="font-normal text-gray-700 ">
+                    {totalConsumption ? totalConsumption : 0} kWh
+                  </p>
                 </div>
                 <div>
                   <img
@@ -157,13 +183,15 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="block max-w-72 w-72 h-24 text-left p-4 bg-white border border-gray-200 rounded-lg shadow ">
+            <div className="block max-w-80 h-24 w-80 text-left p-4 bg-white border border-gray-200 rounded-lg shadow ">
               <div className="flex justify-between items-center">
                 <div>
                   <h5 className="mb-1 text-lg  font-bold tracking-tight text-gray-900 ">
                     Total Meter Units
                   </h5>
-                  <p className="font-normal text-gray-700 ">400</p>
+                  <p className="font-normal text-gray-700 ">
+                    {totalMeters ? totalMeters : 0}
+                  </p>
                 </div>
                 <div>
                   <img className="size-10" src="public/group.png" />

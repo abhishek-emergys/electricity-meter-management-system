@@ -12,7 +12,7 @@ const Sidebar = () => {
       </nav>
       <aside
         id="logo-sidebar"
-        className="fixed top-0 left-0 z-40 w-52 h-screen pt-20 transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700"
+        className="fixed top-0 left-0 z-40 w-52 h-screen pt-[4.3rem] transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700"
         aria-label="Sidebar"
       >
         <div className="h-full px-2 pb-4 overflow-y-auto bg-white dark:bg-gray-800">

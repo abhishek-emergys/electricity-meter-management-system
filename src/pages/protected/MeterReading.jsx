@@ -10,6 +10,7 @@ const MeterReading = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchData = async () => {
     setLoading(true);
@@ -17,13 +18,13 @@ const MeterReading = () => {
 
     try {
       const response = await fetch(
-        `http://192.168.0.160:8080/api/auth/admin-get-all-meter-readings`,
+        `${BASE_URL}/api/auth/admin-get-all-meter-readings`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "6024"
+            "ngrok-skip-browser-warning": "6024",
           },
         }
       );
@@ -48,7 +49,9 @@ const MeterReading = () => {
 
   const filteredReadings = meterReadings.filter(
     (reading) =>
-      reading.user_meter_map_id.meter_id.toString().includes(searchTerm.toLowerCase()) ||
+      reading.user_meter_map_id.meter_id
+        .toString()
+        .includes(searchTerm.toLowerCase()) ||
       reading.reading_id.toString().includes(searchTerm.toLowerCase())
   );
 
@@ -89,13 +92,13 @@ const MeterReading = () => {
             /> */}
             </div>
             <div className="pb-3 flex gap-3">
-            <input
-              type="search"
-              placeholder="Search"
-              className="px-2 py-1 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+              <input
+                type="search"
+                placeholder="Search"
+                className="px-2 py-1 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
               <label
                 htmlFor="uploadFile1"
                 className="flex bg-green-800 hover:bg-green-700 text-white text-base px-4 py-1.5 outline-none rounded-lg w-max cursor-pointer mx-auto font-[sans-serif]"
@@ -115,9 +118,9 @@ const MeterReading = () => {
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3">
+                  {/* <th scope="col" className="px-6 py-3">
                     Meter ID
-                  </th>
+                  </th> */}
                   <th scope="col" className="px-6 py-3">
                     Meter Number
                   </th>
@@ -139,15 +142,13 @@ const MeterReading = () => {
                       key={reading.reading_id}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      <th
+                      {/* <th
                         scope="row"
                         className="px-6 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                       >
                         {reading.user_meter_map_id.meter_id}
-                      </th>
-                      <td className="px-6 py-2">
-                        {reading.meter_number}
-                      </td>
+                      </th> */}
+                      <td className="px-6 py-2">{reading.meter_number}</td>
                       <td className="px-6 py-2">{reading.consumption}</td>
                       <td className="px-6 py-2">
                         {reading.is_bill_paid === 1 ? "True" : "False"}
@@ -155,13 +156,13 @@ const MeterReading = () => {
                       <td className="px-6 py-2 text-center">
                         <button
                           type="button"
-                          className="mx-1 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                          className="mx-1 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-semibold rounded-lg text-sm px-4 py-2 text-center "
                         >
                           <FaEdit />
                         </button>
                         <button
                           type="button"
-                          className="mx-1 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+                          className="mx-1 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-semibold rounded-lg text-sm px-4 py-2 text-center"
                         >
                           <MdDelete />
                         </button>

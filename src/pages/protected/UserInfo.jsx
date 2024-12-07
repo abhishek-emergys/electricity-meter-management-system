@@ -7,11 +7,12 @@ import AddUser from "../../components/AddUser";
 
 const UserInfo = () => {
   const [getUsers, setGetUsers] = useState([]);
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchAllUsers = async () => {
     const token = localStorage.getItem("userToken");
     const response = await fetch(
-      "http://192.168.0.160:8080/api/auth/admin-getAllUsers",
+      `${BASE_URL}/api/auth/admin-getAllUsers`,
       {
         method: "GET",
         headers: {
@@ -41,15 +42,17 @@ const UserInfo = () => {
               User Information
             </p>
           </div>
-          <div>
+          <div className="flex justify-end gap-3">
+            <div>
             <input
               type="search"
               placeholder="Search"
               className="px-2 py-1 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500"
             />
-          </div>
+            </div>
           <div className="pb-3">
             <AddUser />
+          </div>
           </div>
         </div>
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -65,9 +68,9 @@ const UserInfo = () => {
                 <th scope="col" className="px-6 py-3">
                   Address
                 </th>
-                <th scope="col" className="px-6 py-3">
+                {/* <th scope="col" className="px-6 py-3">
                   Consumtion (kWh)
-                </th>
+                </th> */}
                 <th scope="col" className="px-6 py-3">
                   Role
                 </th>
@@ -90,7 +93,7 @@ const UserInfo = () => {
                   </th>
                   <td className="px-6 py-2">{user.email}</td>
                   <td className="px-6 py-2">{user.address}</td>
-                  <td className="px-6 py-2"> 100 </td>
+                  {/* <td className="px-6 py-2"> 100 </td> */}
                   <td className="px-6 py-2">{user.role_name}</td>
                   <td className="px-6 py-2 text-center">
                     <button

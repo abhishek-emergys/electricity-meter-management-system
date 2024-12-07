@@ -22,6 +22,7 @@ const userSchema = z.object({
 const AddUser = () => {
   const token = localStorage.getItem("userToken");
   const [isLoading, setIsLoading] = useState(false);
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [formData, setFormData] = useState({
     username: "",
@@ -75,7 +76,7 @@ const AddUser = () => {
       userSchema.parse(formData);
 
       const response = await fetch(
-        "http://192.168.0.160:8080/api/auth/create-user",
+        `${BASE_URL}/api/auth/create-user`,
         {
           method: "POST",
           headers: {

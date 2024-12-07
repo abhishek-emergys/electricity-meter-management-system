@@ -10,6 +10,8 @@ const Navbar = () => {
   const [email, setEmail] = useState("");
   const Navigate = useNavigate();
 
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const dropdownRef = useRef(null);
   const avatarButtonRef = useRef(null);
 
@@ -19,17 +21,14 @@ const Navbar = () => {
 
   const fetchUser = async () => {
     const token = localStorage.getItem("userToken");
-    const response = await fetch(
-      "http://192.168.0.160:8080/api/auth/user-profile",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "ngrok-skip-browser-warning": "6024",
-        },
-      }
-    );
+    const response = await fetch(`${BASE_URL}/api/auth/user-profile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "6024",
+      },
+    });
     const newData = await response.json();
     setName(newData.profile.username);
     setEmail(newData.profile.email);
@@ -85,8 +84,8 @@ const Navbar = () => {
   return (
     <div>
       <ToastContainer />
-      <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
-        <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+      <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 ">
+        <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-2">
           <Link
             to="/dashboard"
             className="flex items-center space-x-3 rtl:space-x-reverse"

@@ -28,6 +28,8 @@ const Register = () => {
     pincode: "",
   });
 
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [errors, setErrors] = useState({
     username: "",
     email: "",
@@ -46,7 +48,7 @@ const Register = () => {
   };
 
   const handleSubmit = async (e) => {
-    setIsLoding(true)
+    setIsLoding(true);
     e.preventDefault();
 
     setErrors({
@@ -71,19 +73,16 @@ const Register = () => {
 
       const { confirmPassword, ...userData } = formData;
 
-      const response = await fetch(
-        "https://a612-103-22-140-65.ngrok-free.app/api/auth/create-user",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/auth/create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
 
       if (response.ok) {
-        setIsLoding(false)
+        setIsLoding(false);
         const data = await response.json();
         const showSuccessMessage = () => {
           toast.success(data.message, {
@@ -97,7 +96,7 @@ const Register = () => {
           Navigate("/login");
         }, 800);
       } else {
-        setIsLoding(false)
+        setIsLoding(false);
         const errorData = await response.json();
         const showSuccessMessage = () => {
           toast.error(errorData.message, {
@@ -108,7 +107,7 @@ const Register = () => {
         showSuccessMessage();
       }
     } catch (err) {
-      setIsLoding(false)
+      setIsLoding(false);
       if (err instanceof z.ZodError) {
         const newErrors = err.errors.reduce((acc, curr) => {
           acc[curr.path[0]] = curr.message;
