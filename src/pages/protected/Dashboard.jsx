@@ -109,7 +109,7 @@ const Dashboard = () => {
     <div>
       <Sidebar />
       <ToastContainer />
-      <div className="p-4 sm:ml-52 overflow-hidden">
+      <div className="p-4 sm:ml-52">
         <div className="p-2 rounded-lg dark:border-gray-700 mt-12">
           <div className="flex justify-between">
             <div>
@@ -161,7 +161,11 @@ const Dashboard = () => {
                   </p>
                 </div>
                 <div>
-                  <img className="size-10" src="public/group.png" />
+                  <img
+                    className="size-10"
+                    alt="group image"
+                    src="public/group.png"
+                  />
                 </div>
               </div>
             </div>
@@ -178,6 +182,7 @@ const Dashboard = () => {
                 <div>
                   <img
                     className="size-10"
+                    alt="image"
                     src="public/energy-consumption.png"
                   />
                 </div>
@@ -194,7 +199,7 @@ const Dashboard = () => {
                   </p>
                 </div>
                 <div>
-                  <img className="size-10" src="public/group.png" />
+                  <img alt="image" className="size-10" src="public/group.png" />
                 </div>
               </div>
             </div>

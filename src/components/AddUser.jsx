@@ -19,7 +19,7 @@ const userSchema = z.object({
   pincode: z.string().min(6).max(6),
 });
 
-const AddUser = () => {
+const AddUser = ({refreshUsersList}) => {
   const token = localStorage.getItem("userToken");
   const [isLoading, setIsLoading] = useState(false);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -90,34 +90,38 @@ const AddUser = () => {
       if (response.ok) {
         setIsLoading(false);
         const data = await response.json();
+        console.info(data.message);
+        
+        // const showSuccessMessage = () => {
+        //   toast.success(data.message, {
+        //     position: "top-center",
+        //   });
+        // };
 
-        const showSuccessMessage = () => {
-          toast.success(data.message, {
-            position: "top-center",
-          });
-        };
-
-        showSuccessMessage();
+        // showSuccessMessage();
         setTimeout(() => {
           toggleModal();
           clearFormData();
+          refreshUsersList();
         }, 800);
       } else {
         setIsLoading(false);
         const errorData = await response.json();
+        console.error(errorData.message);
+        
+        // const showSuccessMessage = () => {
+        //   toast.error(errorData.message, {
+        //     position: "top-center",
+        //     autoClose: 1500,
+        //   });
+        // };
 
-        const showSuccessMessage = () => {
-          toast.error(errorData.message, {
-            position: "top-center",
-            autoClose: 1500,
-          });
-        };
-
-        showSuccessMessage();
+        // showSuccessMessage();
 
       }
     } catch (err) {
       setIsLoading(false);
+      console.error("Invalid Credentials");
       const showSuccessMessage = () => {
         toast.error("Invalid Credentials", {
           position: "top-center",
@@ -228,7 +232,7 @@ const AddUser = () => {
                       value={formData.username}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                      placeholder="Type user name"
+                      placeholder="john.doe"
                     />
                   </div>
 
@@ -311,6 +315,7 @@ const AddUser = () => {
                       type="text"
                       name="address"
                       id="address"
+                      placeholder="Pune city 01"
                       value={formData.address}
                       onChange={handleChange}
                       className="bg-gray-50 border resize-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
@@ -339,15 +344,17 @@ const AddUser = () => {
                       type="text"
                       name="pincode"
                       id="pincode"
+                      placeholder="411001"
                       value={formData.pincode}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                     />
                   </div>
                 </div>
+                <div className="flex justify-center">
                 <button
                   type="submit"
-                  className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 w-1/3 justify-center focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
+                  className="text-white inline-flex items-center bg-green-700 hover:bg-green-800 w-1/3 justify-center focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
                 >
                   {isLoading && (
                     <svg
@@ -370,6 +377,7 @@ const AddUser = () => {
                   )}
                   Add User
                 </button>
+                </div>
               </form>
             </div>
           </div>
