@@ -40,7 +40,7 @@ const Dashboard = () => {
   const fetchConsumption = async () => {
     const token = localStorage.getItem("userToken");
     const response = await fetch(
-      `${BASE_URL}/api/auth/yearly_consumption_chart`,
+      `${BASE_URL}/api/auth/yearly-consumption-chart`,
       {
         method: "GET",
         headers: {
@@ -60,7 +60,7 @@ const Dashboard = () => {
 
   const fetchMeters = async () => {
     const token = localStorage.getItem("userToken");
-    const response = await fetch(`${BASE_URL}/api/auth/yearly_meter_chart`, {
+    const response = await fetch(`${BASE_URL}/api/auth/yearly-meter-chart`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -92,6 +92,7 @@ const Dashboard = () => {
       const showSuccessMessage = () => {
         toast.success("File successfully uploaded!", {
           position: "top-center",
+          autoClose: 1000,
         });
       };
       showSuccessMessage();

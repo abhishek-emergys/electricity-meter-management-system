@@ -83,6 +83,10 @@ const Login = () => {
             localStorage.setItem("roleId", 'user');
           }
 
+          if(data.role_id === 3) {
+            localStorage.setItem("roleId", 'superadmin');
+          }
+
           Navigate("/dashboard");
         }, 800);
 

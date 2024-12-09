@@ -1,9 +1,12 @@
 import Sidebar from "../../components/Sidebar";
 import { FaEdit } from "react-icons/fa";
+import { IoMdAdd } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import { useState, useEffect } from "react";
 import AddUser from "../../components/AddUser";
 import Swal from "sweetalert2";
+import EditUser from "../../components/EditUser";
+import AssignMeter from "../../components/AssignMeter";
 
 const UserInfo = () => {
   const [getUsers, setGetUsers] = useState([]);
@@ -11,6 +14,7 @@ const UserInfo = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(9);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -102,23 +106,23 @@ const UserInfo = () => {
     fetchAllUsers();
   }, []);
 
-  useEffect(() => {
-    if (getUsers.length > 0) {
-      const sortedUsers = [...getUsers].sort((a, b) => {
-        const aValue = a[sortConfig.key] || "";
-        const bValue = b[sortConfig.key] || "";
+  // useEffect(() => {
+  //   if (getUsers.length > 0) {
+  //     const sortedUsers = [...getUsers].sort((a, b) => {
+  //       const aValue = a[sortConfig.key] || "";
+  //       const bValue = b[sortConfig.key] || "";
 
-        if (aValue < bValue) {
-          return sortConfig.direction === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === "asc" ? 1 : -1;
-        }
-        return 0;
-      });
-      setFilteredUsers(sortedUsers);
-    }
-  }, [getUsers, sortConfig]);
+  //       if (aValue < bValue) {
+  //         return sortConfig.direction === "asc" ? -1 : 1;
+  //       }
+  //       if (aValue > bValue) {
+  //         return sortConfig.direction === "asc" ? 1 : -1;
+  //       }
+  //       return 0;
+  //     });
+  //     setFilteredUsers(sortedUsers);
+  //   }
+  // }, [getUsers, sortConfig]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
@@ -137,14 +141,16 @@ const UserInfo = () => {
   };
 
   const sortData = (key) => {
+    console.log("filteredUsers 1st ", filteredUsers);
+
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
     }
 
     const sortedUsers = [...filteredUsers].sort((a, b) => {
-      const aValue = a[key] || "";
-      const bValue = b[key] || "";
+      const aValue = a[key]?.trim().toLowerCase() || "";
+      const bValue = b[key]?.trim().toLowerCase() || "";
 
       if (aValue < bValue) {
         return direction === "asc" ? -1 : 1;
@@ -155,7 +161,11 @@ const UserInfo = () => {
       return 0;
     });
 
+    console.log("sortedUsers ", sortedUsers);
+
     setFilteredUsers(sortedUsers);
+    console.log("filteredUsers ", filteredUsers);
+
     setSortConfig({ key, direction });
     setCurrentPage(1);
   };
@@ -174,6 +184,17 @@ const UserInfo = () => {
   };
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+  const [modalOpen, setModalOpen] = useState(true);
+  const [assignModalOpen, setAssignModalOpen] = useState(true);
+
+  const toggleModal = (modalName) => {
+    if(modalName === 'edit') {
+      setModalOpen((prevState) => !prevState);
+    } else if(modalName === 'assign') {
+      setAssignModalOpen((prevState) => !prevState);
+    }
+  };
 
   return (
     <div>
@@ -209,7 +230,7 @@ const UserInfo = () => {
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 cursor-pointer w-6"
+                  className="px-6 py-3 cursor-pointer"
                   onClick={() => sortData("username")}
                 >
                   User name
@@ -220,14 +241,14 @@ const UserInfo = () => {
                 <th scope="col" className="px-6 py-3">
                   Email
                 </th>
-                <th scope="col" className="px-6 py-3 cursor-pointer">
+                <th scope="col" className="px-6 py-3">
                   Address
                 </th>
-                {/* <th scope="col" className="px-6 py-3 cursor-pointer">
-                  Role
-                </th> */}
                 <th scope="col" className="px-6 py-3 text-center">
                   Action
+                </th>
+                <th scope="col" className="px-6 py-3 text-start">
+                  Assign Meter
                 </th>
               </tr>
             </thead>
@@ -252,11 +273,33 @@ const UserInfo = () => {
                     </th>
                     <td className="px-6 py-2">{user.email}</td>
                     <td className="px-6 py-2">{user.address}</td>
-                    {/* <td className="px-6 py-2">{user.role_name}</td> */}
-                    <td className="px-6 py-2 text-center">
+                    <td className="flex justify-center px-6 py-2">
+                      {!modalOpen && (
+                        <EditUser
+                          user={selectedUser}
+                          modalOpen={modalOpen}
+                          setModalOpen={setModalOpen}
+                          refreshUsersList={refreshUsersList}
+                        />
+                      )}
+
+                      {!assignModalOpen && (
+                        <AssignMeter
+                          user={selectedUser}
+                          modalOpen={assignModalOpen}
+                          setModalOpen={setAssignModalOpen}
+                          refreshUsersList={refreshUsersList}
+                        />
+                      )}
                       <button
-                        type="button"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          toggleModal('edit');
+                        }}
+                        data-modal-target="crud-modal"
+                        data-modal-toggle="crud-modal"
                         className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                        type="button"
                       >
                         <FaEdit />
                       </button>
@@ -266,6 +309,18 @@ const UserInfo = () => {
                         className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
                       >
                         <MdDelete />
+                      </button>
+                    </td>
+                    <td className="px-6 py-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          toggleModal('assign');
+                        }}
+                        className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                      >
+                        <IoMdAdd />
                       </button>
                     </td>
                   </tr>

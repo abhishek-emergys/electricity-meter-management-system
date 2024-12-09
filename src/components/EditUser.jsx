@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { IoMdAdd } from "react-icons/io";
 import { z } from "zod";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -7,35 +6,38 @@ import "react-toastify/dist/ReactToastify.css";
 const userSchema = z.object({
   username: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .min(1, "Password is required"),
+  role: z.string().min(1, "Role is required"),
   address: z
     .string()
-    .min(1, "Password is required")
+    .min(1, "Address is required")
     .min(10, "Address must be at least 10 characters"),
   pincode: z.string().min(6).max(6),
 });
 
-const AddUser = ({refreshUsersList}) => {
+const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
+  console.log("user from ", user);
+  const userRole = localStorage.getItem("roleId");
+  console.log("userRole ", userRole);
+
   const token = localStorage.getItem("userToken");
   const [isLoading, setIsLoading] = useState(false);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    address: "",
-    pincode: "",
+    username: user?.username || "",
+    email: user?.email || "",
+    role: user?.role_name || "user",
+    address: user?.address || "",
+    pincode: user?.pincode || "",
   });
+
+  console.log("formData ", formData);
 
   const clearFormData = () =>
     setFormData({
       username: "",
       email: "",
-      password: "",
+      role: "user",
       address: "",
       pincode: "",
     });
@@ -43,30 +45,46 @@ const AddUser = ({refreshUsersList}) => {
   const [errors, setErrors] = useState({
     username: "",
     email: "",
-    password: "",
+    role: "",
     address: "",
     pincode: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // console.log("name ", name, " ", "value ", value);
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
+  const updateRole = async (user_id, newRole) => {
+    const updatedRole = newRole === "Admin" ? 1 : 2;
+    const response = await fetch(
+      `${BASE_URL}/api/auth/superadmin-update-role/${user_id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ new_role_id: updatedRole }),
+      }
+    );
+
+    return response;
+  };
+
   const handleSubmit = async (e) => {
     setIsLoading(true);
 
     e.preventDefault();
+    console.log("e ", e);
 
     setErrors({
       username: "",
       email: "",
-      password: "",
+      role: "",
       address: "",
       pincode: "",
     });
@@ -74,13 +92,28 @@ const AddUser = ({refreshUsersList}) => {
     try {
       userSchema.parse(formData);
 
+      console.log(
+        "formData.role ",
+        formData.role,
+        "user.role_name ",
+        user.role_name
+      );
+
+      if (formData.role !== user.role_name) {
+        const roleResponse = await updateRole(user.user_id, formData.role);
+
+        if (!roleResponse.ok) {
+          throw new Error("Role update failed");
+        }
+      }
+
       const response = await fetch(
-        `${BASE_URL}/api/auth/create-user`,
+        `${BASE_URL}/api/auth/admin-updateUsers/${user.user_id}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `'Bearer ${token}'`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(formData),
         }
@@ -90,14 +123,7 @@ const AddUser = ({refreshUsersList}) => {
         setIsLoading(false);
         const data = await response.json();
         console.info(data.message);
-        
-        // const showSuccessMessage = () => {
-        //   toast.success(data.message, {
-        //     position: "top-center",
-        //   });
-        // };
 
-        // showSuccessMessage();
         setTimeout(() => {
           toggleModal();
           clearFormData();
@@ -107,28 +133,15 @@ const AddUser = ({refreshUsersList}) => {
         setIsLoading(false);
         const errorData = await response.json();
         console.error(errorData.message);
-        
-        // const showSuccessMessage = () => {
-        //   toast.error(errorData.message, {
-        //     position: "top-center",
-        //     autoClose: 1500,
-        //   });
-        // };
-
-        // showSuccessMessage();
-
       }
     } catch (err) {
       setIsLoading(false);
       console.error("Invalid Credentials");
-      const showSuccessMessage = () => {
-        toast.error("Invalid Credentials", {
-          position: "top-center",
-          autoClose: 1500,
-        });
-      };
+      toast.error("Invalid Credentials", {
+        position: "top-center",
+        autoClose: 1500,
+      });
 
-      showSuccessMessage();
       if (err instanceof z.ZodError) {
         const newErrors = err.errors.reduce((acc, curr) => {
           acc[curr.path[0]] = curr.message;
@@ -136,49 +149,33 @@ const AddUser = ({refreshUsersList}) => {
         }, {});
         setErrors(newErrors);
       }
-      // console.log("END ", err);
     }
   };
-
-  const [modalOpen, setModalOpen] = useState(true);
 
   const toggleModal = () => {
     if (!modalOpen) {
       setErrors({
         username: "",
         email: "",
-        password: "",
+        role: "",
         address: "",
         pincode: "",
       });
       clearFormData();
     }
-
     setModalOpen((prevState) => !prevState);
   };
 
   return (
     <div>
       <ToastContainer />
-      <button
-        onClick={toggleModal}
-        data-modal-target="crud-modal"
-        data-modal-toggle="crud-modal"
-        className="flex bg-green-800 hover:bg-green-700 text-white text-base px-4 py-1.5 outline-none rounded-lg w-max cursor-pointer mx-auto font-[sans-serif]"
-        type="button"
-      >
-        <div className="text-center mt-1 mr-1 font-medium">
-          <IoMdAdd />
-        </div>
-        <label className="cursor-pointer">Add User</label>
-      </button>
       {!modalOpen && (
         <div className="flex backdrop-blur-sm justify-center items-center overflow-y-auto overflow-x-hidden fixed z-50 md:inset-1 h-[calc(100%-1rem)] max-h-full">
           <div className="relative p-4 w-full max-w-lg max-h-full">
             <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
               <div className="flex items-center justify-between p-4 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Create New User
+                  Edit User
                 </h3>
                 <button
                   type="button"
@@ -239,7 +236,7 @@ const AddUser = ({refreshUsersList}) => {
                     <div className="flex justify-between">
                       <div>
                         <label
-                          htmlFor="price"
+                          htmlFor="email"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
                           Email
@@ -264,39 +261,44 @@ const AddUser = ({refreshUsersList}) => {
                     />
                   </div>
 
-                  <div className="col-span-2 ">
+                  <div className="col-span-2">
                     <div className="flex justify-between">
                       <div>
                         <label
-                          htmlFor="password"
+                          htmlFor="role"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
-                          Password
+                          Role
                         </label>
                       </div>
                       <div>
-                        {errors.password && (
+                        {errors.role && (
                           <p className="text-red-500 text-sm mt-1">
-                            {errors.password}
+                            {errors.role}
                           </p>
                         )}
                       </div>
                     </div>
-                    <input
-                      type="password"
-                      name="password"
-                      id="password"
-                      value={formData.password}
+                    <select
+                      name="role"
+                      disabled={userRole === "admin"}
+                      id="role"
+                      value={formData.role}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                    />
+                      className={`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 ${
+                        userRole === "admin" ? "cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <option value="Admin">Admin</option>
+                      <option value="User">User</option>
+                    </select>
                   </div>
 
                   <div className="col-span-2">
                     <div className="flex justify-between">
                       <div>
                         <label
-                          htmlFor="name"
+                          htmlFor="address"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
                           Address
@@ -311,7 +313,6 @@ const AddUser = ({refreshUsersList}) => {
                       </div>
                     </div>
                     <textarea
-                      type="text"
                       name="address"
                       id="address"
                       placeholder="Pune city 01"
@@ -351,39 +352,39 @@ const AddUser = ({refreshUsersList}) => {
                   </div>
                 </div>
                 <div className="flex justify-center">
-                <button
-                  type="submit"
-                  className="text-white inline-flex items-center bg-green-700 hover:bg-green-800 w-1/3 justify-center focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
-                >
-                  {isLoading && (
-                    <svg
-                      aria-hidden="true"
-                      role="status"
-                      className="inline w-4 h-4 me-3 text-white animate-spin"
-                      viewBox="0 0 100 101"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                        fill="#E5E7EB"
-                      />
-                      <path
-                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  )}
-                  Add User
-                </button>
+                  <button
+                    type="submit"
+                    className="text-white inline-flex items-center bg-green-700 hover:bg-green-800 w-[40%] justify-center focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
+                  >
+                    {isLoading && (
+                      <svg
+                        aria-hidden="true"
+                        role="status"
+                        className="inline w-4 h-4 me-3 text-white animate-spin"
+                        viewBox="0 0 100 101"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                          fill="#E5E7EB"
+                        />
+                        <path
+                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    )}
+                    Update User
+                  </button>
                 </div>
               </form>
             </div>
           </div>
         </div>
-      )}{" "}
+      )}
     </div>
   );
 };
 
-export default AddUser;
+export default EditUser;

@@ -26,8 +26,8 @@ const DashboardChart = () => {
     const token = localStorage.getItem("userToken");
     const endpoint =
       period === "monthly"
-        ? `${BASE_URL}/api/auth/monthly_user_chart`
-        : `${BASE_URL}/api/auth/yearly_user_chart`;
+        ? `${BASE_URL}/api/auth/monthly-user-chart`
+        : `${BASE_URL}/api/auth/yearly-user-chart`;
 
     try {
       const response = await fetch(endpoint, {
@@ -39,7 +39,6 @@ const DashboardChart = () => {
         },
       });
       const newData = await response.json();
-      console.log("Fetched User Data:", newData);
       if (period === "monthly") {
         setUsersData(newData.monthlyData);
       } else {
@@ -54,8 +53,8 @@ const DashboardChart = () => {
     const token = localStorage.getItem("userToken");
     const endpoint =
       period === "monthly"
-        ? `${BASE_URL}/api/auth/monthly_consumption_chart`
-        : `${BASE_URL}/api/auth/yearly_consumption_chart`;
+        ? `${BASE_URL}/api/auth/monthly-consumption-chart`
+        : `${BASE_URL}/api/auth/yearly-consumption-chart`;
 
     try {
       const response = await fetch(endpoint, {
@@ -67,7 +66,6 @@ const DashboardChart = () => {
         },
       });
       const newData = await response.json();
-      console.log("Fetched Consumption Data:", newData);
       if (period === "monthly") {
         setConsumptionData(newData.monthlyData);
       } else {
@@ -141,14 +139,14 @@ const DashboardChart = () => {
             valueField="totalUsers"
             tooltipText="Month: {month} {year}\nUsers Gained: [bold]{valueY}[/]"
             seriesName="Users Gained"
-            chartTitle="Total Users"
+            chartTitle="Users"
             categoryTitle={timePeriod === "monthly" ? "Month" : "Year"}
           />
         )}
 
         {noConsumptionDataFound ? (
           <div className="bg-gray-100 p-4 rounded-lg w-1/2 h-[50vh]">
-            <p className="text-center font-bold">No Data Found</p>
+            <p className="text-center font-semibold">No Data Found</p>
           </div>
         ) : (
           <Chart
