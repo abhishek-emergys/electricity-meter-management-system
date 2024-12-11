@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 import Swal from "sweetalert2";
 
-const Navbar = () => {
+const Navbar = ({ setUserId }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const Navigate = useNavigate();
+  const userRole = localStorage.getItem("roleId");
 
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,8 +30,9 @@ const Navbar = () => {
       },
     });
     const newData = await response.json();
-    setName(newData.profile.username);
-    setEmail(newData.profile.email);
+    setName(newData.profile[0].username);
+    setEmail(newData.profile[0].email);
+    setUserId(newData.profile[0].user_id);
   };
 
   useEffect(() => {
@@ -68,7 +69,7 @@ const Navbar = () => {
 
     if (confirm.isConfirmed) {
       const showSuccessMessage = () => {
-        toast.success("Logout successful", {
+        toast.success("Logout successful.", {
           position: "top-center",
         });
       };
@@ -83,11 +84,10 @@ const Navbar = () => {
 
   return (
     <div>
-      <ToastContainer />
       <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 ">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-2">
           <Link
-            to="/dashboard"
+            to={userRole === "user" ? "/user-dashboard" : "/dashboard"}
             className="flex items-center space-x-3 rtl:space-x-reverse"
           >
             <img
@@ -146,6 +146,7 @@ const Navbar = () => {
           )}
         </div>
       </nav>
+      <Toaster />
     </div>
   );
 };

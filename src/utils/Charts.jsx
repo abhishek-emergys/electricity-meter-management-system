@@ -38,11 +38,13 @@ const Chart = ({
     let series;
     if (chartType === "bar") {
       series = chart.series.push(new ColumnSeries());
+      
       series.dataFields.valueY = valueField;
       series.dataFields.categoryX =
         categoryTitle === "Month" ? "month" : "year";
       series.name = seriesName;
-      series.tooltipText = tooltipText;
+      series.columns.template.tooltipText = tooltipText;
+      // series.tooltipText = tooltipText;
       series.tooltip.getFillFromObject = false;
       series.tooltip.background.fill = "#000000";
       series.tooltip.background.opacity = 0.75;
@@ -50,6 +52,8 @@ const Chart = ({
       series.columns.template.stroke = "#5788C7";
     } else if (chartType === "line") {
       series = chart.series.push(new LineSeries());
+      console.log("series ", series.tooltip);
+      
       series.dataFields.valueY = valueField;
       series.dataFields.categoryX =
         categoryTitle === "Month" ? "month" : "year";

@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import DashboardChart from "../../utils/DashboardChart";
 import { z } from "zod";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from 'react-hot-toast';
 
 const fileValidationSchema = z.object({
   file: z
@@ -83,33 +82,56 @@ const Dashboard = () => {
     fetchMeters();
   }, []);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
 
     try {
       fileValidationSchema.parse({ file: selectedFile });
+
       setFile(selectedFile);
-      const showSuccessMessage = () => {
-        toast.success("File successfully uploaded!", {
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const token = localStorage.getItem("userToken");
+      const response = await fetch(`${BASE_URL}/api/auth/upload-csv`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+
+        if (
+          responseData.validationErrors &&
+          responseData.validationErrors.length > 0
+        ) {
+          toast.error(`Validation failed`, {
+            position: "top-center",
+          });
+        } else {
+          toast.success("File successfully uploaded!", {
+            position: "top-center",
+          });
+        }
+      } else {
+        toast.error(`Upload failed`, {
           position: "top-center",
-          autoClose: 1000,
         });
-      };
-      showSuccessMessage();
+      }
     } catch (err) {
-      const showSuccessMessage = () => {
-        toast.error(err.errors[0].message, {
-          position: "top-center",
-        });
-      };
-      showSuccessMessage();
+      toast.error("An unexpected error occurred", {
+        position: "top-center",
+      });
     }
   };
 
   return (
     <div>
       <Sidebar />
-      <ToastContainer />
       <div className="p-4 sm:ml-52">
         <div className="p-2 rounded-lg dark:border-gray-700 mt-12">
           <div className="flex justify-between">
@@ -137,7 +159,7 @@ const Dashboard = () => {
                     data-original="#000000"
                   />
                 </svg>
-                Upload CSV
+                Upload CSV File
                 <input
                   type="file"
                   id="uploadFile1"
@@ -209,6 +231,7 @@ const Dashboard = () => {
           <DashboardChart />
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };

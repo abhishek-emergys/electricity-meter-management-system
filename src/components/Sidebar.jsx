@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { MdElectricMeter } from "react-icons/md";
+import { FaTachometerAlt } from "react-icons/fa";
+import { MdAssignmentAdd } from "react-icons/md";
 import Navbar from "./Navbar";
 
 const Sidebar = () => {
@@ -49,7 +50,7 @@ const Sidebar = () => {
                 }`}
               >
                 <svg
-                  className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 "
                   aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="currentColor"
@@ -62,6 +63,23 @@ const Sidebar = () => {
                 </span>
               </Link>
             </li>
+
+            <li>
+              <Link
+                to="/add-reading"
+                className={`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group ${
+                  location.pathname === "/add-reading"
+                    ? "bg-gray-200 dark:bg-gray-700"
+                    : ""
+                }`}
+              >
+                <MdAssignmentAdd className="text-gray-500 text-xl group-hover:text-gray-900 " />
+                <span className="flex-1 ms-3 whitespace-nowrap">
+                  Add Readings
+                </span>
+              </Link>
+            </li>
+
             <li>
               <Link
                 to="/meter-reading"
@@ -71,9 +89,9 @@ const Sidebar = () => {
                     : ""
                 }`}
               >
-                <MdElectricMeter />
+                <FaTachometerAlt className="text-gray-500 text-xl group-hover:text-gray-900 " />
                 <span className="flex-1 ms-3 whitespace-nowrap">
-                  Meter Readings
+                  Update Readings
                 </span>
               </Link>
             </li>
