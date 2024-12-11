@@ -1,9 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-const getUserRole = () => {
-  const token = localStorage.getItem("userToken");
-  if (!token) return null;
-};
+// const getUserRole = () => {
+//   const token = localStorage.getItem("userToken");
+//   if (!token) return null;
+// };
 
 const ProtectedRoutes = ({ allowedRoles }) => {
   const isAuthenticated = localStorage.getItem("userToken") ? true : false;

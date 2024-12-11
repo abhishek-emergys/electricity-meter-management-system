@@ -4,111 +4,94 @@ import toast, { Toaster } from "react-hot-toast";
 
 const userSchema = z.object({
   username: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address").min(1, "Email is required"),
-  role: z.string().min(1, "Role is required"),
-  address: z
-    .string()
-    .min(1, "Address is required")
-    .min(10, "Address must be at least 10 characters"),
-  pincode: z.string().min(6).max(6),
+  reading_date: z.string(),
+  meter_number: z.string().min(1, "Meter number is required"),
+  consumption: z.string(),
+  is_bill_paid: z.boolean(),
 });
 
-const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
-  console.log("user from ", user);
-  const userRole = localStorage.getItem("roleId");
-  console.log("userRole ", userRole);
+const EditReading = ({
+  reading,
+  refreshReadingList,
+  modalOpen,
+  setModalOpen,
+}) => {
+  // const userRole = localStorage.getItem("roleId");
 
   const token = localStorage.getItem("userToken");
   const [isLoading, setIsLoading] = useState(false);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const [formData, setFormData] = useState({
-    username: user?.username || "",
-    email: user?.email || "",
-    role: user?.role_name || "user",
-    address: user?.address || "",
-    pincode: user?.pincode || "",
-  });
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toISOString().split("T")[0];
+  };
 
-  console.log("formData ", formData);
+  const [formData, setFormData] = useState({
+    username: reading?.username || "",
+    reading_date: reading?.reading_date
+      ? formatDate(reading?.reading_date)
+      : "",
+    meter_number: reading?.meter_number || "",
+    consumption: String(reading?.consumption) || "",
+    is_bill_paid: reading?.is_bill_paid || false,
+  });
 
   const clearFormData = () =>
     setFormData({
       username: "",
-      email: "",
-      role: "user",
-      address: "",
-      pincode: "",
+      meter_number: "",
+      reading_date: "",
+      consumption: "",
+      is_bill_paid: null,
     });
 
   const [errors, setErrors] = useState({
     username: "",
-    email: "",
-    role: "",
-    address: "",
-    pincode: "",
+    meter_number: "",
+    reading_date: "",
+    consumption: "",
+    is_bill_paid: null,
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const updateRole = async (user_id, newRole) => {
-    const updatedRole = newRole === "Admin" ? 1 : 2;
-    const response = await fetch(
-      `${BASE_URL}/api/auth/superadmin-update-role/${user_id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ new_role_id: updatedRole }),
-      }
-    );
-
-    return response;
+    if (name === "is_bill_paid") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value === "1",
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     setIsLoading(true);
 
     e.preventDefault();
-    console.log("e ", e);
 
     setErrors({
       username: "",
-      email: "",
-      role: "",
-      address: "",
-      pincode: "",
+      meter_number: "",
+      reading_date: "",
+      consumption: "",
+      is_bill_paid: null,
     });
+
+    if (formData.is_bill_paid === null) {
+      formData.is_bill_paid = false;
+    }
 
     try {
       userSchema.parse(formData);
+      const { username, meter_number, ...newData } = formData;
 
-      console.log(
-        "formData.role ",
-        formData.role,
-        "user.role_name ",
-        user.role_name
-      );
-
-      if (formData.role !== user.role_name) {
-        const roleResponse = await updateRole(user.user_id, formData.role);
-
-        if (!roleResponse.ok) {
-          throw new Error("Role update failed");
-        }
-      }
-
-      const { role, ...newData } = formData;
       const response = await fetch(
-        `${BASE_URL}/api/auth/admin-updateUsers/${user.user_id}`,
+        `${BASE_URL}/api/auth/admin-update-meter-reading/${reading.reading_id}`,
         {
           method: "PUT",
           headers: {
@@ -120,6 +103,10 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
       );
 
       if (response.ok) {
+        toast.success("Reading updated successful.", {
+          position: "top-center",
+          autoClose: 1500,
+        });
         setIsLoading(false);
         const data = await response.json();
         console.info(data.message);
@@ -127,12 +114,16 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
         setTimeout(() => {
           toggleModal();
           clearFormData();
-          refreshUsersList();
+          refreshReadingList();
         }, 800);
       } else {
         setIsLoading(false);
         const errorData = await response.json();
         console.error(errorData.message);
+        toast.error(errorData.message, {
+          position: "top-center",
+          autoClose: 1500,
+        });
       }
     } catch (err) {
       setIsLoading(false);
@@ -156,10 +147,10 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
     if (!modalOpen) {
       setErrors({
         username: "",
-        email: "",
-        role: "",
-        address: "",
-        pincode: "",
+        meter_number: "",
+        reading_date: "",
+        consumption: "",
+        is_bill_paid: null,
       });
       clearFormData();
     }
@@ -174,7 +165,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
             <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
               <div className="flex items-center justify-between p-4 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Edit User
+                  Edit Reading
                 </h3>
                 <button
                   type="button"
@@ -223,11 +214,11 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                     <input
                       type="text"
                       name="username"
+                      disabled
                       id="name"
                       value={formData.username}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                      placeholder="john.doe"
+                      className="bg-gray-50 border cursor-not-allowed border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                     />
                   </div>
 
@@ -238,60 +229,27 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                           htmlFor="email"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
-                          Email
+                          Meter Number
                         </label>
                       </div>
                       <div>
-                        {errors.email && (
+                        {errors.meter_number && (
                           <p className="text-red-500 text-sm mt-1">
-                            {errors.email}
+                            {errors.meter_number}
                           </p>
                         )}
                       </div>
                     </div>
                     <input
                       type="text"
+                      name="meter_number"
                       disabled
-                      name="email"
-                      id="email"
-                      value={formData.email}
+                      id="meter_number"
+                      value={formData.meter_number}
                       onChange={handleChange}
-                      className="bg-gray-50 border cursor-not-allowed border-gray-300 text-gray-500 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                      placeholder="john.doe@gmail.com"
+                      className="bg-gray-50 border cursor-not-allowed border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                      placeholder="MTR-001"
                     />
-                  </div>
-
-                  <div className="col-span-2">
-                    <div className="flex justify-between">
-                      <div>
-                        <label
-                          htmlFor="role"
-                          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                        >
-                          Role
-                        </label>
-                      </div>
-                      <div>
-                        {errors.role && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.role}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <select
-                      name="role"
-                      disabled={userRole === "admin"}
-                      id="role"
-                      value={formData.role}
-                      onChange={handleChange}
-                      className={`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 ${
-                        userRole === "admin" ? "cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <option value="Admin">Admin</option>
-                      <option value="User">User</option>
-                    </select>
                   </div>
 
                   <div className="col-span-2">
@@ -301,57 +259,95 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                           htmlFor="address"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
-                          Address
+                          Consumption (kWh)
                         </label>
                       </div>
                       <div>
-                        {errors.address && (
+                        {errors.consumption && (
                           <p className="text-red-500 text-sm mt-1">
-                            {errors.address}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <textarea
-                      name="address"
-                      id="address"
-                      placeholder="Pune city 01"
-                      value={formData.address}
-                      onChange={handleChange}
-                      className="bg-gray-50 border resize-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <div className="flex justify-between">
-                      <div>
-                        <label
-                          htmlFor="pincode"
-                          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                        >
-                          Pincode
-                        </label>
-                      </div>
-                      <div>
-                        {errors.pincode && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.pincode}
+                            {errors.consumption}
                           </p>
                         )}
                       </div>
                     </div>
                     <input
-                      type="text"
-                      name="pincode"
-                      id="pincode"
-                      placeholder="411001"
-                      value={formData.pincode}
+                      name="consumption"
+                      id="consumption"
+                      placeholder="100"
+                      value={formData.consumption}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                      className="bg-gray-50 border resize-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                     />
                   </div>
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-between gap-4">
+                  <div className="col-span-2 w-1/2">
+                    <div className="flex justify-between">
+                      <div>
+                        <label
+                          htmlFor="reading_date"
+                          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                        >
+                          Date
+                        </label>
+                      </div>
+                      <div>
+                        {errors.reading_date && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.reading_date}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <input
+                      type="date"
+                      name="reading_date"
+                      id="reading_date"
+                      placeholder="100"
+                      value={formData.reading_date}
+                      onChange={handleChange}
+                      className="bg-gray-50 border resize-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    />
+                  </div>
+
+                  <div className="col-span-2 w-1/2">
+                    <div className="flex justify-between">
+                      <div>
+                        <label
+                          htmlFor="is_bill_paid"
+                          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                        >
+                          Bill Status
+                        </label>
+                      </div>
+                      <div>
+                        {errors.is_bill_paid && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.is_bill_paid}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <select
+                      name="is_bill_paid"
+                      id="is_bill_paid"
+                      value={
+                        formData.is_bill_paid !== null
+                          ? formData.is_bill_paid
+                            ? "1"
+                            : "0"
+                          : "0"
+                      }
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    >
+                      <option value={1}>Paid</option>
+                      <option value={0}>Unpaid</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-center mt-5">
                   <button
                     type="submit"
                     className="text-white inline-flex items-center bg-green-700 hover:bg-green-800 w-[40%] justify-center focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
@@ -375,7 +371,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                         />
                       </svg>
                     )}
-                    Update User
+                    Update Reading
                   </button>
                 </div>
               </form>
@@ -388,4 +384,4 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
   );
 };
 
-export default EditUser;
+export default EditReading;

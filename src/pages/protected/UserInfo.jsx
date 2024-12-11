@@ -1,10 +1,11 @@
 import Sidebar from "../../components/Sidebar";
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import { useState, useEffect } from "react";
 import AddUser from "../../components/AddUser";
 import Swal from "sweetalert2";
+import toast, { Toaster } from "react-hot-toast";
 import EditUser from "../../components/EditUser";
 import AssignMeter from "../../components/AssignMeter";
 
@@ -64,18 +65,18 @@ const UserInfo = () => {
           setGetUsers(updatedUsers);
           setFilteredUsers(updatedUsers);
 
-          // toast.success("User deleted successfully!", {
-          //   position: "top-center",
-          // });
+          toast.success("User deleted successfully!", {
+            position: "top-center",
+          });
         } else {
-          // toast.error("Failed to delete user. Please try again.", {
-          //   position: "top-center",
-          // });
+          toast.error("Failed to delete user. Please try again.", {
+            position: "top-center",
+          });
           console.error("Failed to delete user. Please try again.");
         }
       } catch (error) {
         console.error("Error deleting user:", error);
-        // toast.error("Error deleting user. Please try again.");
+        toast.error("Error deleting user. Please try again.");
       }
     }
   };
@@ -83,6 +84,7 @@ const UserInfo = () => {
   const fetchAllUsers = async () => {
     const token = localStorage.getItem("userToken");
     try {
+      toast.loading("Waiting...");
       const response = await fetch(`${BASE_URL}/api/auth/admin-getAllUsers`, {
         method: "GET",
         headers: {
@@ -91,38 +93,21 @@ const UserInfo = () => {
           "ngrok-skip-browser-warning": "6024",
         },
       });
+      toast.dismiss();
       const newData = await response.json();
       setGetUsers(newData.users);
       setFilteredUsers(newData.users);
     } catch (error) {
       console.error("Failed to fetch users:", error);
-      // toast.error("Failed to load users. Please try again.", {
-      //   position: "top-center",
-      // });
+      toast.error("Failed to load users. Please try again.", {
+        position: "top-center",
+      });
     }
   };
 
   useEffect(() => {
     fetchAllUsers();
   }, []);
-
-  // useEffect(() => {
-  //   if (getUsers.length > 0) {
-  //     const sortedUsers = [...getUsers].sort((a, b) => {
-  //       const aValue = a[sortConfig.key] || "";
-  //       const bValue = b[sortConfig.key] || "";
-
-  //       if (aValue < bValue) {
-  //         return sortConfig.direction === "asc" ? -1 : 1;
-  //       }
-  //       if (aValue > bValue) {
-  //         return sortConfig.direction === "asc" ? 1 : -1;
-  //       }
-  //       return 0;
-  //     });
-  //     setFilteredUsers(sortedUsers);
-  //   }
-  // }, [getUsers, sortConfig]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
@@ -141,8 +126,6 @@ const UserInfo = () => {
   };
 
   const sortData = (key) => {
-    console.log("filteredUsers 1st ", filteredUsers);
-
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
@@ -161,13 +144,9 @@ const UserInfo = () => {
       return 0;
     });
 
-    console.log("sortedUsers ", sortedUsers);
-
     setFilteredUsers(sortedUsers);
-    console.log("filteredUsers ", filteredUsers);
-
     setSortConfig({ key, direction });
-    setCurrentPage(1);
+    // setCurrentPage(1);
   };
 
   const refreshUsersList = () => {
@@ -189,9 +168,9 @@ const UserInfo = () => {
   const [assignModalOpen, setAssignModalOpen] = useState(true);
 
   const toggleModal = (modalName) => {
-    if(modalName === 'edit') {
+    if (modalName === "edit") {
       setModalOpen((prevState) => !prevState);
-    } else if(modalName === 'assign') {
+    } else if (modalName === "assign") {
       setAssignModalOpen((prevState) => !prevState);
     }
   };
@@ -215,7 +194,7 @@ const UserInfo = () => {
                 value={searchQuery}
                 onChange={handleSearch}
                 placeholder="Search"
-                className="px-2 py-1 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500"
+                className="px-2 py-1 rounded-lg bg-gray-50 border"
               />
             </div>
             <div className="pb-3">
@@ -224,30 +203,36 @@ const UserInfo = () => {
           </div>
         </div>
 
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <div className="relative h-[69vh] overflow-hidden shadow-md sm:rounded-lg">
+          <table className="w-full text-sm text-left rtl:text-right text-gray-500 ">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 cursor-pointer"
+                  className="px-6 py-3 cursor-pointer w-1/6"
                   onClick={() => sortData("username")}
                 >
                   User name
-                  {sortConfig.key === "username" && (
-                    <span>{sortConfig.direction === "asc" ? " ↑" : " ↓"}</span>
+                  {sortConfig.key === "username" ? (
+                    sortConfig.direction === "asc" ? (
+                      <FaSortUp className="inline-block ml-2" />
+                    ) : (
+                      <FaSortDown className="inline-block ml-2 mb-1" />
+                    )
+                  ) : (
+                    <FaSort className="inline-block ml-2" />
                   )}
                 </th>
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 py-3 w-1/6">
                   Email
                 </th>
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 py-3 w-1/5">
                   Address
                 </th>
-                <th scope="col" className="px-6 py-3 text-center">
+                <th scope="col" className="px-6 py-3 w-1/6">
                   Action
                 </th>
-                <th scope="col" className="px-6 py-3 text-start">
+                <th scope="col" className="px-6 py-3 w-1/6">
                   Assign Meter
                 </th>
               </tr>
@@ -263,17 +248,17 @@ const UserInfo = () => {
                 currentUsers.map((user) => (
                   <tr
                     key={user.user_id}
-                    className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    className="bg-white border-b  hover:bg-gray-50 "
                   >
                     <th
                       scope="row"
-                      className="px-6 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                      className="px-6 py-2 font-medium text-gray-900 whitespace-nowrap "
                     >
                       {formatName(user.username)}
                     </th>
                     <td className="px-6 py-2">{user.email}</td>
-                    <td className="px-6 py-2">{user.address}</td>
-                    <td className="flex justify-center px-6 py-2">
+                    <td className="px-6 py-2 truncate">{user.address}</td>
+                    <td className="flex px-6 py-2">
                       {!modalOpen && (
                         <EditUser
                           user={selectedUser}
@@ -294,11 +279,11 @@ const UserInfo = () => {
                       <button
                         onClick={() => {
                           setSelectedUser(user);
-                          toggleModal('edit');
+                          toggleModal("edit");
                         }}
                         data-modal-target="crud-modal"
                         data-modal-toggle="crud-modal"
-                        className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                        className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center "
                         type="button"
                       >
                         <FaEdit />
@@ -306,7 +291,7 @@ const UserInfo = () => {
                       <button
                         type="button"
                         onClick={() => handleDelete(user.user_id)}
-                        className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                        className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center "
                       >
                         <MdDelete />
                       </button>
@@ -316,9 +301,9 @@ const UserInfo = () => {
                         type="button"
                         onClick={() => {
                           setSelectedUser(user);
-                          toggleModal('assign');
+                          toggleModal("assign");
                         }}
-                        className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                        className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center "
                       >
                         <IoMdAdd />
                       </button>
@@ -350,6 +335,7 @@ const UserInfo = () => {
           </button>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };

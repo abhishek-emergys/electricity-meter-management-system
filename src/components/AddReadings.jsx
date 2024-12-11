@@ -1,12 +1,10 @@
-import Sidebar from "../../components/Sidebar";
-import toast, { Toaster } from "react-hot-toast";
-import { FaEdit, FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
 import { useState, useEffect } from "react";
-import Swal from "sweetalert2";
-import EditReading from "../../components/EditReading";
+import { FaEdit, FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
+import Sidebar from "./Sidebar";
+import toast, { Toaster } from "react-hot-toast";
+import AddReadingModal from "./AddReadingModal";
 
-const MeterReading = () => {
+const AddReadings = () => {
   const [meterReadings, setMeterReadings] = useState([]);
   const [filteredMeterReadings, setFilteredMeterReadings] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,11 +13,6 @@ const MeterReading = () => {
   const [selectedReading, setSelectedReading] = useState(null);
 
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    return new Date(dateString).toISOString().split("T")[0];
-  };
 
   const [sortConfig, setSortConfig] = useState({
     key: "username",
@@ -38,7 +31,7 @@ const MeterReading = () => {
     try {
       toast.loading("Waiting...");
       const response = await fetch(
-        `${BASE_URL}/api/auth/admin-get-all-meter-readings`,
+        `${BASE_URL}/api/auth/admin-get-all-user-meter-mapping-data`,
         {
           method: "GET",
           headers: {
@@ -100,56 +93,8 @@ const MeterReading = () => {
     });
 
     setFilteredMeterReadings(sortedUsers);
+
     setSortConfig({ key, direction });
-  };
-
-  const handleDelete = async (readingId) => {
-    const token = localStorage.getItem("userToken");
-
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This action cannot be undone!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(
-          `${BASE_URL}/api/auth/admin-delete-meter-reading/${readingId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-              "ngrok-skip-browser-warning": "6024",
-            },
-          }
-        );
-
-        if (response.ok) {
-          const updatedReadings = meterReadings.filter(
-            (reading) => reading.reading_id !== readingId
-          );
-          setMeterReadings(updatedReadings);
-          setFilteredMeterReadings(updatedReadings);
-
-          toast.success("Reading deleted successful.", {
-            position: "top-center",
-          });
-        } else {
-          toast.error("Failed to delete reading. Please try again.", {
-            position: "top-center",
-          });
-          console.error("Failed to delete reading. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error deleting reading:", error);
-      }
-    }
   };
 
   const indexOfLastUser = currentPage * readingPerPage;
@@ -180,7 +125,7 @@ const MeterReading = () => {
         <div className="flex justify-between">
           <div>
             <p className="text-xl font-semibold text-gray-700 pl-1 pb-2">
-              Meter Readings
+              Add Readings
             </p>
           </div>
           <div className="flex justify-end gap-3">
@@ -201,12 +146,12 @@ const MeterReading = () => {
 
         <div>
           <div className="relative mt-3 h-[69vh] overflow-hidden shadow-md sm:rounded-lg">
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 cursor-pointer w-1/7"
+                    className="px-6 py-3 cursor-pointer w-1/3"
                     onClick={() => sortData("username")}
                   >
                     User name
@@ -222,23 +167,7 @@ const MeterReading = () => {
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 w-1/7 cursor-pointer"
-                    onClick={() => sortData("reading_date")}
-                  >
-                    Date
-                    {sortConfig.key === "reading_date" ? (
-                      sortConfig.direction === "asc" ? (
-                        <FaSortUp className="inline-block ml-2" />
-                      ) : (
-                        <FaSortDown className="inline-block ml-2 mb-1" />
-                      )
-                    ) : (
-                      <FaSort className="inline-block ml-2" />
-                    )}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 w-1/7 cursor-pointer"
+                    className="px-6 py-3 w-1/3"
                     onClick={() => sortData("meter_number")}
                   >
                     Meter Number
@@ -252,13 +181,7 @@ const MeterReading = () => {
                       <FaSort className="inline-block ml-2" />
                     )}
                   </th>
-                  <th scope="col" className="px-6 py-3 w-1/7">
-                    Consumption (kWh)
-                  </th>
-                  <th scope="col" className="px-6 py-3 w-1/7">
-                    Bill Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 w-1/7">
+                  <th scope="col" className="px-6 py-3 text-center w-1/3">
                     Action
                   </th>
                 </tr>
@@ -275,29 +198,22 @@ const MeterReading = () => {
                   currentReading.map((reading) => (
                     <tr
                       key={reading.reading_id}
-                      className="bg-white border-b  hover:bg-gray-50 "
+                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       <th
                         scope="row"
-                        className="px-6 py-2 font-medium text-gray-900 whitespace-nowrap "
+                        className="px-6 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                       >
                         {formatName(reading.username)}
                       </th>
-                      <td className="px-6 py-2">
-                        {formatDate(reading.reading_date)}
-                      </td>
                       <td className="px-6 py-2">{reading.meter_number}</td>
-                      <td className="px-6 py-2">{reading.consumption}</td>
-                      <td className="px-6 py-2">
-                        {reading.is_bill_paid === 1 ? "Paid" : "Unpaid"}
-                      </td>
 
-                      <td className="flex px-6 py-2 text-center">
+                      <td className="flex justify-center px-6 py-2 text-center">
                         {!modalOpen && (
-                          <EditReading
+                          <AddReadingModal
                             reading={selectedReading}
-                            modalOpen={modalOpen}
                             refreshReadingList={refreshReadingList}
+                            modalOpen={modalOpen}
                             setModalOpen={setModalOpen}
                           />
                         )}
@@ -312,13 +228,6 @@ const MeterReading = () => {
                           type="button"
                         >
                           <FaEdit />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(reading.reading_id)}
-                          className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
-                        >
-                          <MdDelete />
                         </button>
                       </td>
                     </tr>
@@ -354,4 +263,4 @@ const MeterReading = () => {
   );
 };
 
-export default MeterReading;
+export default AddReadings;
