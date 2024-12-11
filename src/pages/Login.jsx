@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").min(1, "Email is required"),
@@ -12,10 +11,9 @@ const loginSchema = z.object({
 const Login = () => {
   const Navigate = useNavigate();
   const [isLoding, setIsLoding] = useState(false);
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState("");
 
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  
 
   const [formData, setFormData] = useState({
     email: "",
@@ -37,6 +35,10 @@ const Login = () => {
     }));
   };
 
+  const clearToast = setTimeout(() => {
+    toast.dismiss();
+  }, 10000);
+
   const handleSubmit = async (e) => {
     setIsLoding(true);
     e.preventDefault();
@@ -47,18 +49,18 @@ const Login = () => {
 
     try {
       loginSchema.parse(formData);
+      toast.loading("Waiting...");
+      clearToast();
 
-      const response = await fetch(
-        `${BASE_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
+      toast.dismiss();
       if (response.ok) {
         setIsLoding(false);
         const data = await response.json();
@@ -73,23 +75,23 @@ const Login = () => {
 
         setTimeout(() => {
           localStorage.setItem("userToken", data.token);
-          console.log(typeof data.role_id);
-          
-          if(data.role_id === 1) {
-            localStorage.setItem("roleId", 'admin');
+          // console.log(typeof data.role_id);
+
+          if (data.role_id === 1) {
+            localStorage.setItem("roleId", "admin");
+            Navigate("/dashboard");
           }
 
-          if(data.role_id === 2) {
-            localStorage.setItem("roleId", 'user');
+          if (data.role_id === 2) {
+            localStorage.setItem("roleId", "user");
+            Navigate("/user-dashboard");
           }
 
-          if(data.role_id === 3) {
-            localStorage.setItem("roleId", 'superadmin');
+          if (data.role_id === 3) {
+            localStorage.setItem("roleId", "superadmin");
+            Navigate("/dashboard");
           }
-
-          Navigate("/dashboard");
         }, 800);
-
       } else {
         setIsLoding(false);
         const errorData = await response.json();
@@ -104,13 +106,6 @@ const Login = () => {
       }
     } catch (err) {
       setIsLoding(false);
-      // const showSuccessMessage = () => {
-      //   toast.error('Invalid credentials', {
-      //     position: "top-center",
-      //   });
-      // };
-
-      // showSuccessMessage();
       if (err instanceof z.ZodError) {
         const newErrors = err.errors.reduce((acc, curr) => {
           acc[curr.path[0]] = curr.message;
@@ -123,7 +118,6 @@ const Login = () => {
 
   return (
     <>
-      <ToastContainer />
       <div className="flex flex-col gap-4 items-center mt-10">
         <div>
           <img
@@ -231,6 +225,7 @@ const Login = () => {
           </div>
         </form>
       </div>
+      <Toaster />
     </>
   );
 };
