@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { z } from "zod";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 
 const userSchema = z.object({
   username: z.string().min(1, "Name is required"),
@@ -107,6 +106,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
         }
       }
 
+      const { role, ...newData } = formData;
       const response = await fetch(
         `${BASE_URL}/api/auth/admin-updateUsers/${user.user_id}`,
         {
@@ -115,7 +115,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(newData),
         }
       );
 
@@ -168,7 +168,6 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
 
   return (
     <div>
-      <ToastContainer />
       {!modalOpen && (
         <div className="flex backdrop-blur-sm justify-center items-center overflow-y-auto overflow-x-hidden fixed z-50 md:inset-1 h-[calc(100%-1rem)] max-h-full">
           <div className="relative p-4 w-full max-w-lg max-h-full">
@@ -210,7 +209,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                           htmlFor="name"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
-                          Name
+                          User Name
                         </label>
                       </div>
                       <div>
@@ -252,11 +251,12 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                     </div>
                     <input
                       type="text"
+                      disabled
                       name="email"
                       id="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                      className="bg-gray-50 border cursor-not-allowed border-gray-300 text-gray-500 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                       placeholder="john.doe@gmail.com"
                     />
                   </div>
@@ -383,6 +383,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
           </div>
         </div>
       )}
+      <Toaster />
     </div>
   );
 };

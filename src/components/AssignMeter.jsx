@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { z } from "zod";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 
 const userSchema = z.object({
   username: z.string().min(1, "Name is required"),
@@ -11,9 +10,7 @@ const userSchema = z.object({
 });
 
 const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
-  console.log("user from ", user);
   const userRole = localStorage.getItem("roleId");
-  console.log("userRole ", userRole);
 
   const token = localStorage.getItem("userToken");
   const [isLoading, setIsLoading] = useState(false);
@@ -25,8 +22,6 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
     reading_date: "",
     consumption: "",
   });
-
-  console.log("formData ", formData);
 
   const clearFormData = () =>
     setFormData({
@@ -87,9 +82,11 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
       );
 
       if (response.ok) {
+        toast.success("Meter Assign Successful.")
+        toggleModal();
         setIsLoading(false);
-        const data = await response.json();
-        console.info(data.message);
+        const data = await response.json();        
+        toast.info(data.message);
 
         setTimeout(() => {
           toggleModal();
@@ -99,15 +96,10 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
       } else {
         setIsLoading(false);
         const errorData = await response.json();
-        console.error(errorData.message);
+        toast.error(errorData.message);
       }
     } catch (err) {
       setIsLoading(false);
-      console.error("Invalid Credentials");
-      toast.error("Invalid Credentials", {
-        position: "top-center",
-        autoClose: 1500,
-      });
 
       if (err instanceof z.ZodError) {
         const newErrors = err.errors.reduce((acc, curr) => {
@@ -134,7 +126,6 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
 
   return (
     <div>
-      <ToastContainer />
       {!modalOpen && (
         <div className="flex backdrop-blur-sm justify-center items-center overflow-y-auto overflow-x-hidden fixed z-50 md:inset-1 h-[calc(100%-1rem)] max-h-full">
           <div className="relative p-4 w-full max-w-lg max-h-full">
@@ -176,7 +167,7 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                           htmlFor="name"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
-                          Name
+                          User Name
                         </label>
                       </div>
                       <div>
@@ -224,7 +215,7 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                       value={formData.meter_number}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                      placeholder="john.doe@gmail.com"
+                      placeholder="MTR-001"
                     />
                   </div>
 
@@ -264,7 +255,7 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                           htmlFor="consumption"
                           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
-                          Consumption
+                          Consumption (kWh)
                         </label>
                       </div>
                       <div>
@@ -279,7 +270,7 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                       type="text"
                       name="consumption"
                       id="consumption"
-                      placeholder="Pune city 01"
+                      placeholder="100"
                       value={formData.consumption}
                       onChange={handleChange}
                       className="bg-gray-50 border resize-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
@@ -318,6 +309,7 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
           </div>
         </div>
       )}
+      <Toaster />
     </div>
   );
 };
