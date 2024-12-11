@@ -1,4 +1,3 @@
-import React from "react";
 
 const NotFoundPage = () => {
   return (
@@ -8,9 +7,6 @@ const NotFoundPage = () => {
           <h1 className="text-4xl font-semibold text-red-600 mb-4">
             404 - Page Not Found
           </h1>
-          <p className="text-lg text-gray-700 mb-6">
-            Sorry, the page you&apos;re looking for does not exist.
-          </p>
         </div>
       </div>
     </div>

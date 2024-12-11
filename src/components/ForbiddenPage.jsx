@@ -7,9 +7,6 @@ const ForbiddenPage = () => {
         <p className="text-lg text-gray-700 mb-6">
           Sorry, you do not have permission to access this page.
         </p>
-        <p className="text-sm text-gray-500 mb-6">
-          If you believe this is an error, please contact the administrator.
-        </p>
       </div>
     </div>
   );

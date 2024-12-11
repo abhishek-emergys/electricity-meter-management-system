@@ -118,7 +118,7 @@ const Navbar = ({ setUserId }) => {
             <div
               ref={dropdownRef}
               id="userDropdown"
-              className="z-20 mt-56 mr-4 absolute right-0 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
+              className="z-20 mt-[11rem] mr-4 absolute right-0 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
             >
               <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                 <div>{name}</div>
@@ -129,9 +129,9 @@ const Navbar = ({ setUserId }) => {
                 aria-labelledby="avatarButton"
               >
                 <li>
-                  <Link className="block px-4 py-2 hover:bg-gray-100">
+                  {/* <Link className="block px-4 py-2 hover:bg-gray-100">
                     Profile
-                  </Link>
+                  </Link> */}
                 </li>
               </ul>
               <div className="py-1">
