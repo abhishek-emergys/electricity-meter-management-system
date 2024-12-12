@@ -15,8 +15,8 @@ const AddReadings = () => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [sortConfig, setSortConfig] = useState({
-    key: "username",
-    direction: "asc",
+    key: "",
+    direction: "",
   });
 
   const formatName = (username) => {
@@ -78,23 +78,28 @@ const AddReadings = () => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
+    } else if (sortConfig.key === key && sortConfig.direction === "desc") {
+      direction = "";
+      key = "";
     }
 
-    const sortedUsers = [...filteredMeterReadings].sort((a, b) => {
-      const aValue = a[key]?.trim().toLowerCase() || "";
-      const bValue = b[key]?.trim().toLowerCase() || "";
+    let sortedUsers = [...meterReadings];
+    if (direction && key) {
+      sortedUsers = [...filteredMeterReadings].sort((a, b) => {
+        const aValue = a[key]?.trim().toLowerCase() || "";
+        const bValue = b[key]?.trim().toLowerCase() || "";
 
-      if (aValue < bValue) {
-        return direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
+        if (aValue < bValue) {
+          return direction === "asc" ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
 
     setFilteredMeterReadings(sortedUsers);
-
     setSortConfig({ key, direction });
   };
 
@@ -168,7 +173,7 @@ const AddReadings = () => {
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 w-1/3"
+                    className="px-6 py-3 w-1/3 cursor-pointer"
                     onClick={() => sortData("meter_number")}
                   >
                     Meter Number
