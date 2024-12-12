@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaEdit, FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
-import Sidebar from "./Sidebar";
 import toast, { Toaster } from "react-hot-toast";
-import AddReadingModal from "./AddReadingModal";
+import AddReadingModal from "../../../components/admin/AddReading/AddReadingModal";
+import Sidebar from "../../../layouts/Sidebar";
 
 const AddReadings = () => {
   const [meterReadings, setMeterReadings] = useState([]);
@@ -43,9 +43,9 @@ const AddReadings = () => {
       );
       toast.dismiss();
       const newData = await response.json();
-
-      setMeterReadings(newData.data);
-      setFilteredMeterReadings(newData.data);
+      const data = newData.data || [];
+      setMeterReadings(data);
+      setFilteredMeterReadings(data);
     } catch (error) {
       toast.dismiss();
       console.error("Failed to fetch users:", error);

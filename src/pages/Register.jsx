@@ -124,7 +124,7 @@ const Register = () => {
       <div className="flex flex-col gap-4 items-center 0">
         <div>
           <img
-            src="public/favicon.png"
+            src="src/assets/images/favicon.png"
             className="h-16 pt-2"
             alt="Meter Wise Logo"
           />

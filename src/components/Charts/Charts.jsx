@@ -6,6 +6,7 @@ import {
   ValueAxis,
   ColumnSeries,
   LineSeries,
+  XYCursor
 } from "@amcharts/amcharts4/charts";
 
 const Chart = ({
@@ -51,9 +52,7 @@ const Chart = ({
       series.columns.template.fill = "#2EB4E8";
       series.columns.template.stroke = "#5788C7";
     } else if (chartType === "line") {
-      series = chart.series.push(new LineSeries());
-      console.log("series ", series.tooltip);
-      
+      series = chart.series.push(new LineSeries());      
       series.dataFields.valueY = valueField;
       series.dataFields.categoryX =
         categoryTitle === "Month" ? "month" : "year";
@@ -61,6 +60,7 @@ const Chart = ({
       series.tooltipText = tooltipText;
       series.strokeWidth = 2;
       series.stroke = "#FF5733";
+      chart.cursor = new XYCursor();
     }
 
     return () => {

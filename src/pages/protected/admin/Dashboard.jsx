@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../../components/Sidebar";
-import DashboardChart from "../../utils/DashboardChart";
+import DashboardChart from "../../../components/Charts/DashboardChart";
+import Upload from "../../../assets/images/icons/Dashboard/Upload";
 import { z } from "zod";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from "react-hot-toast";
+import Sidebar from "../../../layouts/Sidebar";
 
 const fileValidationSchema = z.object({
   file: z
@@ -22,8 +23,10 @@ const Dashboard = () => {
   const [totalMeters, setTotalMeters] = useState();
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  const token = localStorage.getItem("userToken");
+
   const fetchUser = async () => {
-    const token = localStorage.getItem("userToken");
+    // const token = localStorage.getItem("userToken");
     const response = await fetch(`${BASE_URL}/api/auth/admin-getAllUsers`, {
       method: "GET",
       headers: {
@@ -37,7 +40,7 @@ const Dashboard = () => {
   };
 
   const fetchConsumption = async () => {
-    const token = localStorage.getItem("userToken");
+    // const token = localStorage.getItem("userToken");
     const response = await fetch(
       `${BASE_URL}/api/auth/yearly-consumption-chart`,
       {
@@ -93,7 +96,7 @@ const Dashboard = () => {
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const token = localStorage.getItem("userToken");
+      // const token = localStorage.getItem("userToken");
       const response = await fetch(`${BASE_URL}/api/auth/upload-csv`, {
         method: "POST",
         headers: {
@@ -145,20 +148,7 @@ const Dashboard = () => {
                 htmlFor="uploadFile1"
                 className="flex bg-green-800 hover:bg-green-700 text-white text-base px-4 py-1.5 outline-none rounded-lg w-max cursor-pointer mx-auto font-[sans-serif]"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-6 mr-2 fill-white inline"
-                  viewBox="0 0 32 32"
-                >
-                  <path
-                    d="M23.75 11.044a7.99 7.99 0 0 0-15.5-.009A8 8 0 0 0 9 27h3a1 1 0 0 0 0-2H9a6 6 0 0 1-.035-12 1.038 1.038 0 0 0 1.1-.854 5.991 5.991 0 0 1 11.862 0A1.08 1.08 0 0 0 23 13a6 6 0 0 1 0 12h-3a1 1 0 0 0 0 2h3a8 8 0 0 0 .75-15.956z"
-                    data-original="#000000"
-                  />
-                  <path
-                    d="M20.293 19.707a1 1 0 0 0 1.414-1.414l-5-5a1 1 0 0 0-1.414 0l-5 5a1 1 0 0 0 1.414 1.414L15 16.414V29a1 1 0 0 0 2 0V16.414z"
-                    data-original="#000000"
-                  />
-                </svg>
+                <Upload />
                 Upload CSV File
                 <input
                   type="file"
@@ -186,8 +176,8 @@ const Dashboard = () => {
                 <div>
                   <img
                     className="size-10"
-                    alt="group image"
-                    src="public/group.png"
+                    alt="image"
+                    src="src/assets/images/group.png"
                   />
                 </div>
               </div>
@@ -206,7 +196,7 @@ const Dashboard = () => {
                   <img
                     className="size-10"
                     alt="image"
-                    src="public/energy-consumption.png"
+                    src="src/assets/images/energy-consumption.png"
                   />
                 </div>
               </div>
@@ -222,7 +212,11 @@ const Dashboard = () => {
                   </p>
                 </div>
                 <div>
-                  <img alt="image" className="size-14" src="public/meter.png" />
+                  <img
+                    alt="image"
+                    className="size-12"
+                    src="src/assets/images/meter.png"
+                  />
                 </div>
               </div>
             </div>

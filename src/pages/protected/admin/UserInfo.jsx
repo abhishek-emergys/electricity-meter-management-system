@@ -1,13 +1,13 @@
-import Sidebar from "../../components/Sidebar";
 import { FaEdit, FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import { useState, useEffect } from "react";
-import AddUser from "../../components/AddUser";
+import AddUser from "../../../components/admin/UserInformation/AddUser";
+import EditUser from "../../../components/admin/UserInformation/EditUser";
+import AssignMeter from "../../../components/admin/UserInformation/AssignMeter";
+import Sidebar from "../../../layouts/Sidebar";
 import Swal from "sweetalert2";
 import toast, { Toaster } from "react-hot-toast";
-import EditUser from "../../components/EditUser";
-import AssignMeter from "../../components/AssignMeter";
 
 const UserInfo = () => {
   const [getUsers, setGetUsers] = useState([]);
@@ -31,9 +31,9 @@ const UserInfo = () => {
       .join(" ");
   };
 
-  const handleDelete = async (userId) => {
-    const token = localStorage.getItem("userToken");
+  const token = localStorage.getItem("userToken");
 
+  const handleDelete = async (userId) => {
     const result = await Swal.fire({
       title: "Are you sure?",
       text: "This action cannot be undone!",
@@ -82,7 +82,7 @@ const UserInfo = () => {
   };
 
   const fetchAllUsers = async () => {
-    const token = localStorage.getItem("userToken");
+    // const token = localStorage.getItem("userToken");
     try {
       toast.loading("Waiting...");
       const response = await fetch(`${BASE_URL}/api/auth/admin-getAllUsers`, {
@@ -95,8 +95,9 @@ const UserInfo = () => {
       });
       toast.dismiss();
       const newData = await response.json();
-      setGetUsers(newData.users);
-      setFilteredUsers(newData.users);
+      const data = newData.users || [];
+      setGetUsers(data);
+      setFilteredUsers(data);
     } catch (error) {
       toast.dismiss();
       console.error("Failed to fetch users:", error);

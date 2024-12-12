@@ -48,7 +48,7 @@ const DashboardChart = () => {
             "ngrok-skip-browser-warning": "6024",
           },
         }),
-      ]);
+      ]);      
 
       if (!monthlyUserRes.ok || !yearlyUserRes.ok) {
         throw new Error("Failed to fetch user data");
@@ -200,7 +200,8 @@ const DashboardChart = () => {
               chartType="line"
               chartId="lineChartDiv"
               valueField="totalConsumption"
-              tooltipText="Month: {month} {year}\nConsumption: [bold]{valueY}[/]"
+              tooltipText=" {month} {year} 
+              Consumption: [bold]{valueY}[/]"
               seriesName="Consumption"
               chartTitle="Consumption (kWh)"
               categoryTitle={timePeriod === "monthly" ? "Month" : "Year"}

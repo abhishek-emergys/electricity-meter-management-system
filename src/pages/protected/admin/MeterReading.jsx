@@ -1,10 +1,10 @@
-import Sidebar from "../../components/Sidebar";
+import Sidebar from "../../../layouts/Sidebar";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEdit, FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import EditReading from "../../components/EditReading";
+import EditReading from "../../../components/admin/MeterReading/EditReading";
 
 const MeterReading = () => {
   const [meterReadings, setMeterReadings] = useState([]);
@@ -33,8 +33,8 @@ const MeterReading = () => {
       .join(" ");
   };
 
+  const token = localStorage.getItem("userToken");
   const fetchAllReadings = async () => {
-    const token = localStorage.getItem("userToken");
     try {
       toast.loading("Waiting...");
       const response = await fetch(
@@ -50,9 +50,9 @@ const MeterReading = () => {
       );
       toast.dismiss();
       const newData = await response.json();
-
-      setMeterReadings(newData.data);
-      setFilteredMeterReadings(newData.data);
+      const data = newData.data || [];
+      setMeterReadings(data);
+      setFilteredMeterReadings(data);
     } catch (error) {
       toast.dismiss();
       console.error("Failed to fetch users:", error);
@@ -111,7 +111,7 @@ const MeterReading = () => {
   };
 
   const handleDelete = async (readingId) => {
-    const token = localStorage.getItem("userToken");
+    // const token = localStorage.getItem("userToken");
 
     const result = await Swal.fire({
       title: "Are you sure?",
