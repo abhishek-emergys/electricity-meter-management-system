@@ -91,7 +91,7 @@ const Navbar = ({ setUserId }) => {
             className="flex items-center space-x-3 rtl:space-x-reverse"
           >
             <img
-              src="public/favicon.png"
+              src="src/assets/images/favicon.png"
               className="h-8"
               alt="MeterWise Logo"
             />

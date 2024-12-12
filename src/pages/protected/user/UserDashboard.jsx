@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import UserSidebar from "../../components/UserSidebar";
-import UserDashboardChart from "../../components/UserDashboardChart";
+import UserSidebar from "../../../layouts/UserSidebar";
+import UserDashboardChart from "../../../components/user/Dashboard/UserDashboardChart";
 import toast, { Toaster } from "react-hot-toast";
 
 const UserDashboard = () => {
@@ -86,7 +86,7 @@ const UserDashboard = () => {
                     <img
                       className="size-10"
                       alt="group image"
-                      src="public/group.png"
+                      src="src/assets/images/group.png"
                     />
                   </div>
                 </div>
@@ -105,7 +105,7 @@ const UserDashboard = () => {
                     <img
                       className="size-10"
                       alt="image"
-                      src="public/energy-consumption.png"
+                      src="src/assets/images/energy-consumption.png"
                     />
                   </div>
                 </div>
@@ -123,8 +123,8 @@ const UserDashboard = () => {
                   <div>
                     <img
                       alt="image"
-                      className="size-10"
-                      src="public/group.png"
+                      className="size-12"
+                      src="src/assets/images/meter.png"
                     />
                   </div>
                 </div>

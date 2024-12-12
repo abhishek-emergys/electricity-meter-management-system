@@ -106,7 +106,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
         }
       }
 
-      const { role, ...newData } = formData;
+      const { role, email, ...newData } = formData;
       const response = await fetch(
         `${BASE_URL}/api/auth/admin-updateUsers/${user.user_id}`,
         {

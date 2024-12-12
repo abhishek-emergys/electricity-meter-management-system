@@ -115,7 +115,7 @@ const Login = () => {
       <div className="flex flex-col gap-4 items-center mt-10">
         <div>
           <img
-            src="public/favicon.png"
+            src="src/assets/images/favicon.png"
             className="h-16"
             alt="Meter Wise Logo"
           />

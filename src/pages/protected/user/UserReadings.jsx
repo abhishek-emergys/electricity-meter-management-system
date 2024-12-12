@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import UserSidebar from "../../components/UserSidebar";
+import UserSidebar from "../../../layouts/UserSidebar";
 import { TbUserQuestion } from "react-icons/tb";
 import toast, { Toaster } from "react-hot-toast";
 import { FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
@@ -287,19 +287,10 @@ const UserReadings = () => {
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 cursor-pointer"
+                      className="px-6 py-3"
                       onClick={() => sortData("reading_date")}
                     >
                       Date
-                      {sortConfig.key === "reading_date" ? (
-                        sortConfig.direction === "asc" ? (
-                          <FaSortUp className="inline-block ml-2" />
-                        ) : (
-                          <FaSortDown className="inline-block ml-2 mb-1" />
-                        )
-                      ) : (
-                        <FaSort className="inline-block ml-2" />
-                      )}
                     </th>
                     <th scope="col" className="px-6 py-3">
                       Consumption (kWh)

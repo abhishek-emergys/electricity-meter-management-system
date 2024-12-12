@@ -4,16 +4,16 @@ import "./index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import Dashboard from "./pages/protected/Dashboard.jsx";
-import ProtectedRoutes from "./components/ProtectedRoutes.jsx";
-import UserInfo from "./pages/protected/UserInfo.jsx";
-import MeterReading from "./pages/protected/MeterReading.jsx";
-import ForbiddenPage from "./components/ForbiddenPage.jsx";
-import PublicRoute from "./components/PublicRoute.jsx";
-import NotFoundPage from "./components/NotFoundPage.jsx";
-import UserDashboard from "./pages/protected/UserDashboard.jsx";
-import UserReadings from "./pages/protected/UserReadings.jsx";
-import AddReadings from "./components/AddReadings.jsx";
+import Dashboard from "./pages/protected/admin/Dashboard.jsx";
+import ProtectedRoutes from "./routes/ProtectedRoutes.jsx";
+import UserInfo from "./pages/protected/admin/UserInfo.jsx";
+import MeterReading from "./pages/protected/admin/MeterReading.jsx";
+import ForbiddenPage from "./pages/error/ForbiddenPage.jsx";
+import PublicRoute from "./routes/PublicRoute.jsx";
+import NotFoundPage from "./pages/error/NotFoundPage.jsx";
+import UserDashboard from "./pages/protected/user/UserDashboard.jsx";
+import UserReadings from "./pages/protected/user/UserReadings.jsx";
+import AddReadings from "./pages/protected/admin/AddReadings.jsx";
 
 createRoot(document.getElementById("root")).render(
   // <StrictMode>
@@ -24,13 +24,12 @@ createRoot(document.getElementById("root")).render(
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/users-info" element={<UserInfo />} />
-        <Route path="/meter-reading" element={<MeterReading />} />
         <Route path="/add-reading" element={<AddReadings />} />
+        <Route path="/meter-reading" element={<MeterReading />} />
       </Route>
 
       <Route element={<ProtectedRoutes allowedRoles={["user"]} />}>
         <Route path="/user-dashboard" element={<UserDashboard />} />
-        {/* <Route path="/user-dashboard" element={<UserDashboard />} /> */}
         <Route path="/reading-info" element={<UserReadings />} />
       </Route>
 
