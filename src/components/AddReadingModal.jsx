@@ -16,7 +16,7 @@ const AddReadingModal = ({
   modalOpen,
   setModalOpen,
 }) => {
-  const userRole = localStorage.getItem("roleId");
+  // const userRole = localStorage.getItem("roleId");
 
   const token = localStorage.getItem("userToken");
   const [isLoading, setIsLoading] = useState(false);

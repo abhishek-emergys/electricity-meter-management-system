@@ -20,8 +20,8 @@ const UserInfo = () => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [sortConfig, setSortConfig] = useState({
-    key: "username",
-    direction: "asc",
+    key: "",
+    direction: "",
   });
 
   const formatName = (username) => {
@@ -117,9 +117,7 @@ const UserInfo = () => {
     const filtered = getUsers.filter(
       (user) =>
         user.username?.toLowerCase().includes(query) ||
-        user.email?.toLowerCase().includes(query) ||
-        user.address?.toLowerCase().includes(query) ||
-        user.role_name?.toLowerCase().includes(query)
+        user.email?.toLowerCase().includes(query)
     );
 
     setFilteredUsers(filtered);
@@ -130,24 +128,29 @@ const UserInfo = () => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
+    } else if (sortConfig.key === key && sortConfig.direction === "desc") {
+      direction = "";
+      key = "";
     }
 
-    const sortedUsers = [...filteredUsers].sort((a, b) => {
-      const aValue = a[key]?.trim().toLowerCase() || "";
-      const bValue = b[key]?.trim().toLowerCase() || "";
+    let sortedUsers = [...getUsers];
+    if (direction && key) {
+      sortedUsers = [...filteredUsers].sort((a, b) => {
+        const aValue = a[key]?.trim().toLowerCase() || "";
+        const bValue = b[key]?.trim().toLowerCase() || "";
 
-      if (aValue < bValue) {
-        return direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
+        if (aValue < bValue) {
+          return direction === "asc" ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
 
     setFilteredUsers(sortedUsers);
     setSortConfig({ key, direction });
-    // setCurrentPage(1);
   };
 
   const refreshUsersList = () => {

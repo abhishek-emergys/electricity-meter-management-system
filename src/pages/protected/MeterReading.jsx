@@ -22,8 +22,8 @@ const MeterReading = () => {
   };
 
   const [sortConfig, setSortConfig] = useState({
-    key: "username",
-    direction: "asc",
+    key: "",
+    direction: "",
   });
 
   const formatName = (username) => {
@@ -85,20 +85,26 @@ const MeterReading = () => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
+    } else if (sortConfig.key === key && sortConfig.direction === "desc") {
+      direction = "";
+      key = "";
     }
 
-    const sortedUsers = [...filteredMeterReadings].sort((a, b) => {
-      const aValue = a[key]?.trim().toLowerCase() || "";
-      const bValue = b[key]?.trim().toLowerCase() || "";
+    let sortedUsers = [...meterReadings];
+    if (direction && key) {
+      sortedUsers = [...filteredMeterReadings].sort((a, b) => {
+        const aValue = a[key]?.trim().toLowerCase() || "";
+        const bValue = b[key]?.trim().toLowerCase() || "";
 
-      if (aValue < bValue) {
-        return direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
+        if (aValue < bValue) {
+          return direction === "asc" ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
 
     setFilteredMeterReadings(sortedUsers);
     setSortConfig({ key, direction });
