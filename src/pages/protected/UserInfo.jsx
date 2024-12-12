@@ -98,6 +98,7 @@ const UserInfo = () => {
       setGetUsers(newData.users);
       setFilteredUsers(newData.users);
     } catch (error) {
+      toast.dismiss();
       console.error("Failed to fetch users:", error);
       toast.error("Failed to load users. Please try again.", {
         position: "top-center",
