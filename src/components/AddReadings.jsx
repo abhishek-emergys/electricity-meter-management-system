@@ -47,6 +47,7 @@ const AddReadings = () => {
       setMeterReadings(newData.data);
       setFilteredMeterReadings(newData.data);
     } catch (error) {
+      toast.dismiss();
       console.error("Failed to fetch users:", error);
     }
   };

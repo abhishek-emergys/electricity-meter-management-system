@@ -47,6 +47,7 @@ const Register = () => {
   };
 
   const handleSubmit = async (e) => {
+    toast.dismiss();
     setIsLoding(true);
     e.preventDefault();
 

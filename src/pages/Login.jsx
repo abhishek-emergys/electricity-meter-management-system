@@ -27,7 +27,7 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log("name ", name, " ", "value ", value);
+    // console.log("name ", name, " ", "value ", value);
 
     setFormData((prev) => ({
       ...prev,
@@ -35,11 +35,8 @@ const Login = () => {
     }));
   };
 
-  const clearToast = setTimeout(() => {
-    toast.dismiss();
-  }, 10000);
-
   const handleSubmit = async (e) => {
+    toast.dismiss();
     setIsLoding(true);
     e.preventDefault();
     setErrors({
@@ -50,7 +47,6 @@ const Login = () => {
     try {
       loginSchema.parse(formData);
       toast.loading("Waiting...");
-      clearToast();
 
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: "POST",
@@ -75,8 +71,6 @@ const Login = () => {
 
         setTimeout(() => {
           localStorage.setItem("userToken", data.token);
-          // console.log(typeof data.role_id);
-
           if (data.role_id === 1) {
             localStorage.setItem("roleId", "admin");
             Navigate("/dashboard");

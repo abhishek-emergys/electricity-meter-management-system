@@ -222,7 +222,7 @@ const Dashboard = () => {
                   </p>
                 </div>
                 <div>
-                  <img alt="image" className="size-10" src="public/group.png" />
+                  <img alt="image" className="size-14" src="public/meter.png" />
                 </div>
               </div>
             </div>
