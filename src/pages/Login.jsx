@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { z } from "zod";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../services/redux/slices/authSlice";
 import toast, { Toaster } from "react-hot-toast";
+import { z } from "zod";
+import Loader from "../assets/images/icons/utils/Loader";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").min(1, "Email is required"),
@@ -9,26 +12,20 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const Navigate = useNavigate();
-  const [isLoding, setIsLoding] = useState(false);
-  const [role, setRole] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const { isLoading } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-  });
+  const [validationErrors, setValidationErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // console.log("name ", name, " ", "value ", value);
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -36,76 +33,46 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    toast.dismiss();
-    setIsLoding(true);
     e.preventDefault();
-    setErrors({
-      email: "",
-      password: "",
-    });
+    toast.dismiss();
+    setValidationErrors({});
 
     try {
       loginSchema.parse(formData);
-      toast.loading("Waiting...");
 
-      const response = await fetch(`${BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const resultAction = await dispatch(loginUser(formData));
 
-      toast.dismiss();
-      if (response.ok) {
-        setIsLoding(false);
-        const data = await response.json();
+      if (loginUser.fulfilled.match(resultAction)) {
+        const { role_id, token, message } = resultAction.payload;
 
-        const showSuccessMessage = () => {
-          toast.success(data.message, {
-            position: "top-center",
-          });
-        };
+        localStorage.setItem("userToken", token);
 
-        showSuccessMessage();
+        toast.success(message, {
+          position: "top-center",
+        });
 
-        setTimeout(() => {
-          localStorage.setItem("userToken", data.token);
-          if (data.role_id === 1) {
-            localStorage.setItem("roleId", "admin");
-            Navigate("/dashboard");
-          }
-
-          if (data.role_id === 2) {
-            localStorage.setItem("roleId", "user");
-            Navigate("/user-dashboard");
-          }
-
-          if (data.role_id === 3) {
-            localStorage.setItem("roleId", "superadmin");
-            Navigate("/dashboard");
-          }
-        }, 800);
-      } else {
-        setIsLoding(false);
-        const errorData = await response.json();
-
-        const showSuccessMessage = () => {
-          toast.error(errorData.message, {
-            position: "top-center",
-            autoClose: 1500,
-          });
-        };
-        showSuccessMessage();
+        if (role_id === 1) {
+          localStorage.setItem("roleId", "admin");
+          navigate("/dashboard");
+        } else if (role_id === 2) {
+          localStorage.setItem("roleId", "user");
+          navigate("/user-dashboard");
+        } else if (role_id === 3) {
+          localStorage.setItem("roleId", "superadmin");
+          navigate("/dashboard");
+        }
+      } else if (loginUser.rejected.match(resultAction)) {
+        toast.error(resultAction.payload || "Login failed!", {
+          position: "top-center",
+        });
       }
     } catch (err) {
-      setIsLoding(false);
       if (err instanceof z.ZodError) {
-        const newErrors = err.errors.reduce((acc, curr) => {
+        const errors = err.errors.reduce((acc, curr) => {
           acc[curr.path[0]] = curr.message;
           return acc;
         }, {});
-        setErrors(newErrors);
+        setValidationErrors(errors);
       }
     }
   };
@@ -139,47 +106,42 @@ const Login = () => {
         >
           <div className="mb-5">
             <div className="flex justify-between">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block mb-2 text-sm font-medium text-gray-600 "
-                >
-                  Email Address
-                </label>
-              </div>
-              <div>
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
-              </div>
+              <label
+                htmlFor="email"
+                className="block mb-2 text-sm font-medium text-gray-600"
+              >
+                Email Address
+              </label>
+              {validationErrors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.email}
+                </p>
+              )}
             </div>
-
             <input
               type="text"
               id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 "
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               placeholder="john.doe@gmail.com"
             />
           </div>
 
           <div className="mb-5">
             <div className="flex justify-between">
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block mb-2 text-sm font-medium text-gray-600 "
-                >
-                  Password
-                </label>
-              </div>
-              <div>
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                )}
-              </div>
+              <label
+                htmlFor="password"
+                className="block mb-2 text-sm font-medium text-gray-600"
+              >
+                Password
+              </label>
+              {validationErrors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.password}
+                </p>
+              )}
             </div>
             <input
               type="password"
@@ -187,34 +149,18 @@ const Login = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 "
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
           </div>
+
           <div className="flex justify-center items-center">
             <button
               type="submit"
-              className="my-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-auto sm:w-1/3 px-5 py-2.5 text-center "
+              className="my-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-1/3 px-5 py-2.5 text-center"
             >
-              {isLoding && (
-                <svg
-                  aria-hidden="true"
-                  role="status"
-                  className="inline w-4 h-4 me-3 text-white animate-spin"
-                  viewBox="0 0 100 101"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                    fill="#E5E7EB"
-                  />
-                  <path
-                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              )}
-              Login
+              <p className="flex justify-center">
+                {isLoading && <Loader />}Login
+              </p>
             </button>
           </div>
         </form>
