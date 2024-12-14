@@ -1,62 +1,28 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import UserSidebar from "../../../layouts/UserSidebar";
 import UserDashboardChart from "../../../components/user/Dashboard/UserDashboardChart";
 import toast, { Toaster } from "react-hot-toast";
+import { fetchUserDashboard } from "../../../services/redux/slices/user/userDashboardSlice";
 
 const UserDashboard = () => {
+  const dispatch = useDispatch();
+  const { totalBillAmount, totalConsumption, totalMeters, chartData, error } =
+    useSelector((state) => state.userDashboard);
+
   const [userId, setUserId] = useState("");
-
-  const [totalBillAmount, setTotalBillAmount] = useState(0);
-  const [totalConsumption, setTotalConsumption] = useState(0);
-  const [totalMeters, setTotalMeters] = useState(0);
-  const [chartData, setChartData] = useState(null);
-
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  const fetchUserInfo = async () => {
-    toast.loading("Waiting...");
-    const token = localStorage.getItem("userToken");
-    const response = await fetch(
-      `${BASE_URL}/api/auth/user-dashboard-readings/${userId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "ngrok-skip-browser-warning": "6024",
-        },
-      }
-    );
-    toast.dismiss();
-    const newData = await response.json();
-
-    if (response.ok && newData.data) {
-      const totalAmount = newData.data.reduce(
-        (total, item) => total + item.bill_amount,
-        0
-      );
-
-      const totalConsumpUnit = newData.data.reduce(
-        (total, item) => total + item.consumption,
-        0
-      );
-
-      const meterNumbers = newData.data.map((item) => item.meter_number);
-      const uniqueMeterNumbers = new Set(meterNumbers);
-      const totalUniqueMeters = uniqueMeterNumbers.size;
-
-      setTotalBillAmount(totalAmount);
-      setTotalConsumption(totalConsumpUnit);
-      setTotalMeters(totalUniqueMeters);
-      setChartData(newData.data);
-    }
-  };
 
   useEffect(() => {
     if (userId) {
-      fetchUserInfo();
+      dispatch(fetchUserDashboard(userId));
     }
-  }, [userId]);
+  }, [userId, dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error, { position: "top-center", duration: 1500 });
+    }
+  }, [error]);
 
   return (
     <div>
@@ -131,7 +97,6 @@ const UserDashboard = () => {
               </div>
             </div>
 
-            {/* <DashboardChart /> */}
             <div className="flex px-3 pb-4 gap-3 justify-between">
               {!chartData ? (
                 <div className="flex w-full gap-2 mt-4">
