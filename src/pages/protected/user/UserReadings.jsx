@@ -1,23 +1,46 @@
 import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import UserSidebar from "../../../layouts/UserSidebar";
 import { TbUserQuestion } from "react-icons/tb";
 import toast, { Toaster } from "react-hot-toast";
 import { FaSort, FaSortDown, FaSortUp } from "react-icons/fa";
+import {
+  fetchMeterReadings,
+  filterReadings,
+  sortReadings,
+} from "../../../services/redux/slices/user/readingsSlice";
 
 const UserReadings = () => {
+  const dispatch = useDispatch();
+  const { meterReadings, filteredMeterReadings } = useSelector(
+    (state) => state.readings
+  );
   const [userId, setUserId] = useState("");
-  const [meterReadings, setMeterReadings] = useState([]);
-  const [filteredMeterReadings, setFilteredMeterReadings] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMeter, setSelectedMeter] = useState("All");
-  const [showModal, setShowModal] = useState(false);
-  const [query, setQuery] = useState("");
-  // const [selectedReading, setSelectedReading] = useState(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const readingsPerPage = 9;
 
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [showModal, setShowModal] = useState(false);
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchMeterReadings(userId));
+    }
+  }, [userId, dispatch]);
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+    dispatch(filterReadings({ query: e.target.value, meter: selectedMeter }));
+  };
+
+  const filterByMeter = (meter) => {
+    setSelectedMeter(meter);
+    dispatch(filterReadings({ query: searchQuery, meter }));
+  };
+
+  // console.log("filteredMeterReadings ", filteredMeterReadings);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -29,69 +52,6 @@ const UserReadings = () => {
     direction: "",
   });
 
-  // const fetchAllReadings = async () => {
-  //   toast.loading("Waiting...");
-  //   const token = localStorage.getItem("userToken");
-  //   try {
-  //     const response = await fetch(
-  //       `${BASE_URL}/api/auth/user-dashboard-readings/${userId}`,
-  //       {
-  //         method: "GET",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //           "ngrok-skip-browser-warning": "6024",
-  //         },
-  //       }
-  //     );
-  //     toast.dismiss();
-  //     const newData = await response.json();
-
-  //     setMeterReadings(newData.data);
-  //     setFilteredMeterReadings(newData.data);
-  //   } catch (error) {
-  //     toast.dismiss();
-  //     console.error("Failed to fetch readings:", error);
-  //     toast.error("Failed to fetch readings");
-  //   }
-  // };
-
-  const fetchAllReadings = async () => {
-    toast.loading("Waiting...");
-    const token = localStorage.getItem("userToken");
-    try {
-      const response = await fetch(
-        `${BASE_URL}/api/auth/user-dashboard-readings/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "6024",
-          },
-        }
-      );
-      toast.dismiss();
-      const newData = await response.json();
-
-      const data = newData.data || [];
-      setMeterReadings(data);
-      setFilteredMeterReadings(data);
-    } catch (error) {
-      toast.dismiss();
-      console.error("Failed to fetch readings:", error);
-      toast.error("Failed to fetch readings");
-    }
-  };
-
-  useEffect(() => {
-    fetchAllReadings();
-  }, [userId]);
-
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
   const sortData = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -100,49 +60,9 @@ const UserReadings = () => {
       direction = "";
       key = "";
     }
-
-    let sortedUsers = [...meterReadings];
-    if (direction && key) {
-      sortedUsers = [...filteredMeterReadings].sort((a, b) => {
-        const aValue = a[key]?.trim().toLowerCase() || "";
-        const bValue = b[key]?.trim().toLowerCase() || "";
-
-        if (aValue < bValue) {
-          return direction === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return direction === "asc" ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    setFilteredMeterReadings(sortedUsers);
     setSortConfig({ key, direction });
+    dispatch(sortReadings({ key, direction }));
   };
-  const filterByMeter = (meter) => {
-    setSelectedMeter(meter);
-    if (meter === "All") {
-      setFilteredMeterReadings(meterReadings);
-    } else {
-      const filtered = meterReadings.filter(
-        (reading) => reading.meter_number === meter
-      );
-      setFilteredMeterReadings(filtered);
-    }
-    setCurrentPage(1);
-  };
-
-  useEffect(() => {
-    const filtered = meterReadings.filter((reading) => {
-      return (
-        reading.meter_number
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        reading.user_id.toString().includes(searchQuery)
-      );
-    });
-    setFilteredMeterReadings(filtered);
-  }, [searchQuery, meterReadings]);
 
   const indexOfLastReading = currentPage * readingsPerPage;
   const indexOfFirstReading = indexOfLastReading - readingsPerPage;
@@ -161,10 +81,8 @@ const UserReadings = () => {
 
   const handleQuerySubmit = async (e) => {
     e.preventDefault();
-
-    console.log("query ", query.length);
     if (query.length === 0) {
-      toast.error("Add a your query.");
+      toast.error("Add a query.");
       return;
     }
 
@@ -209,10 +127,6 @@ const UserReadings = () => {
                 </button>
                 <button
                   type="submit"
-                  // onClick={() => {
-                  //   if (query.length >= 4) setQuery("");
-                  //   setShowModal(false);
-                  // }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
                   Send Query
@@ -291,6 +205,15 @@ const UserReadings = () => {
                       onClick={() => sortData("reading_date")}
                     >
                       Date
+                      {sortConfig.key === "reading_date" ? (
+                        sortConfig.direction === "asc" ? (
+                          <FaSortUp className="inline-block ml-2" />
+                        ) : (
+                          <FaSortDown className="inline-block ml-2 mb-1" />
+                        )
+                      ) : (
+                        <FaSort className="inline-block ml-2" />
+                      )}
                     </th>
                     <th scope="col" className="px-6 py-3">
                       Consumption (kWh)
@@ -325,7 +248,6 @@ const UserReadings = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              // setSelectedReading(reading);
                               setShowModal(true);
                             }}
                             className="mx-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-semibold rounded-lg text-sm px-4 py-2 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
