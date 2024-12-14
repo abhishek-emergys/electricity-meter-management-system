@@ -53,13 +53,19 @@ const Login = () => {
 
         if (role_id === 1) {
           localStorage.setItem("roleId", "admin");
-          navigate("/dashboard");
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 800);
         } else if (role_id === 2) {
           localStorage.setItem("roleId", "user");
-          navigate("/user-dashboard");
+          setTimeout(() => {
+            navigate("/user-dashboard");
+          }, 800);
         } else if (role_id === 3) {
           localStorage.setItem("roleId", "superadmin");
-          navigate("/dashboard");
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 800);
         }
       } else if (loginUser.rejected.match(resultAction)) {
         toast.error(resultAction.payload || "Login failed!", {
@@ -158,9 +164,9 @@ const Login = () => {
               type="submit"
               className="my-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-1/3 px-5 py-2.5 text-center"
             >
-              <p className="flex justify-center">
+              <div className="flex justify-center">
                 {isLoading && <Loader />}Login
-              </p>
+              </div>
             </button>
           </div>
         </form>
