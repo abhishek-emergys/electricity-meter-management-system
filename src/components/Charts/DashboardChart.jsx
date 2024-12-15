@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import toast, { Toaster } from 'react-hot-toast';
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchUsersChartData,
+  fetchConsumptionChartData,
+} from "../../services/redux/slices/admin/chartSlice";
 import Chart from "./Charts";
 
 const DashboardChart = () => {
-  const [usersData, setUsersData] = useState({ monthly: null, yearly: null });
-  const [consumptionData, setConsumptionData] = useState({
-    monthly: null,
-    yearly: null,
-  });
+  const dispatch = useDispatch();
+  const { usersData, consumptionData, error } = useSelector(
+    (state) => state.chart
+  );
+
   const [timePeriod, setTimePeriod] = useState("monthly");
-  const [error, setError] = useState(null);
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const monthNames = [
     "Jan",
@@ -27,80 +29,10 @@ const DashboardChart = () => {
     "Dec",
   ];
 
-  const fetchData = async () => {
-    const token = localStorage.getItem("userToken");
-
-    try {
-      const [monthlyUserRes, yearlyUserRes] = await Promise.all([
-        fetch(`${BASE_URL}/api/auth/monthly-user-chart`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "6024",
-          },
-        }),
-        fetch(`${BASE_URL}/api/auth/yearly-user-chart`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "6024",
-          },
-        }),
-      ]);      
-
-      if (!monthlyUserRes.ok || !yearlyUserRes.ok) {
-        throw new Error("Failed to fetch user data");
-      }
-
-      const [monthlyUserData, yearlyUserData] = await Promise.all([
-        monthlyUserRes.json(),
-        yearlyUserRes.json(),
-      ]);
-
-      const [monthlyConsumptionRes, yearlyConsumptionRes] = await Promise.all([
-        fetch(`${BASE_URL}/api/auth/monthly-consumption-chart`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "6024",
-          },
-        }),
-        fetch(`${BASE_URL}/api/auth/yearly-consumption-chart`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "6024",
-          },
-        }),
-      ]);
-
-      if (!monthlyConsumptionRes.ok || !yearlyConsumptionRes.ok) {
-        throw new Error("Failed to fetch consumption data");
-      }
-
-      const [monthlyConsumptionData, yearlyConsumptionData] = await Promise.all(
-        [monthlyConsumptionRes.json(), yearlyConsumptionRes.json()]
-      );
-
-      setUsersData({
-        monthly: monthlyUserData.monthlyData,
-        yearly: yearlyUserData.yearlyData,
-      });
-
-      setConsumptionData({
-        monthly: monthlyConsumptionData.monthlyData,
-        yearly: yearlyConsumptionData.yearlyData,
-      });
-
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      toast.error("Failed to fetch")
-    }
-  };
+  useEffect(() => {
+    dispatch(fetchUsersChartData());
+    dispatch(fetchConsumptionChartData());
+  }, [dispatch]);
 
   const processMonthlyData = (data, valueField) => {
     return data.map((dataItem) => ({
@@ -116,10 +48,6 @@ const DashboardChart = () => {
       [valueField]: dataItem[valueField],
     }));
   };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const noUserDataFound =
     !usersData[timePeriod] || usersData[timePeriod].length === 0;
@@ -178,9 +106,7 @@ const DashboardChart = () => {
 
           {noConsumptionDataFound ? (
             <div className="bg-gray-100 p-4 rounded-lg w-1/2 h-[50vh]">
-              <p className="text-center font-semibold">
-                No Data Found
-              </p>
+              <p className="text-center font-semibold">No Data Found</p>
             </div>
           ) : (
             <Chart
@@ -209,7 +135,6 @@ const DashboardChart = () => {
           )}
         </div>
       )}
-      <Toaster/>
     </div>
   );
 };

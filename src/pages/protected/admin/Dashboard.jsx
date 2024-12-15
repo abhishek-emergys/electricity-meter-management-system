@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import DashboardChart from "../../../components/Charts/DashboardChart";
 import Upload from "../../../assets/images/icons/Dashboard/Upload";
 import { z } from "zod";
@@ -30,7 +30,7 @@ const Dashboard = () => {
     (state) => state.dashboard
   );
 
-  const [file, setFile] = useState(null);
+  // const [file, setFile] = useState(null);
 
   useEffect(() => {
     dispatch(fetchTotalUsers());
