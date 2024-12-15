@@ -4,7 +4,8 @@ import userDashboardReducer from "./slices/user/userDashboardSlice";
 import readingsReducer from "./slices/user/readingsSlice";
 import dashboardReducer from "./slices/admin/dashboardSlice";
 import chartReducer from "./slices/admin/chartSlice";
-import profileReducer from "./slices/profileSlice"
+import profileReducer from "./slices/profileSlice";
+import userInfoReducer from "./slices/admin/userInfoSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     chart: chartReducer,
     profile: profileReducer,
+    userInfo: userInfoReducer,
   },
 });

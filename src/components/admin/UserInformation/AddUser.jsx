@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoMdAdd } from "react-icons/io";
 import { z } from "zod";
 import toast, { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addUser,
+  clearMessages,
+} from "../../../services/redux/slices/admin/userInfoSlice";
 
 const userSchema = z.object({
   username: z.string().min(1, "Name is required"),
@@ -18,9 +23,13 @@ const userSchema = z.object({
 });
 
 const AddUser = ({ refreshUsersList }) => {
-  const token = localStorage.getItem("userToken");
-  const [isLoading, setIsLoading] = useState(false);
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const dispatch = useDispatch();
+  const { loading, error, successMessage } = useSelector(
+    (state) => state.userInfo
+  );
+
+  const [errors, setErrors] = useState({});
+  const [modalOpen, setModalOpen] = useState(true);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -39,102 +48,48 @@ const AddUser = ({ refreshUsersList }) => {
       pincode: "",
     });
 
-  const [errors, setErrors] = useState({
-    username: "",
-    email: "",
-    password: "",
-    address: "",
-    pincode: "",
-  });
+  useEffect(() => {
+    if (successMessage) {
+      setTimeout(() => {
+        toast.success(successMessage, {
+          position: "top-center",
+          duration: 2000,
+        });
+      }, 1000);
+      toggleModal();
+      refreshUsersList();
+      dispatch(clearMessages());
+    }
+    if (error) {
+      toast.error(error, { position: "top-center", duration: 2000 });
+      dispatch(clearMessages());
+    }
+  }, [successMessage, error, dispatch, refreshUsersList]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSubmit = async (e) => {
-    setIsLoading(true);
-
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    setErrors({
-      username: "",
-      email: "",
-      password: "",
-      address: "",
-      pincode: "",
-    });
-
+    setErrors({});
     try {
       userSchema.parse(formData);
-
-      const response = await fetch(`${BASE_URL}/api/auth/create-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `'Bearer ${token}'`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setIsLoading(false);
-        const data = await response.json();
-        console.info(data.message);
-
-        // const showSuccessMessage = () => {
-        toast.success(data.message, {
-          position: "top-center",
-        });
-        // };
-
-        // showSuccessMessage();
-        setTimeout(() => {
-          toggleModal();
-          clearFormData();
-          refreshUsersList();
-        }, 800);
-      } else {
-        setIsLoading(false);
-        const errorData = await response.json();
-        console.error(errorData.message);
-
-        // const showSuccessMessage = () => {
-        toast.error("Duplicate entry", {
-          position: "top-center",
-          autoClose: 1500,
-        });
-        // };
-
-        // showSuccessMessage();
-      }
+      dispatch(addUser(formData));
     } catch (err) {
-      setIsLoading(false);
-      console.error("Invalid Credentials");
-      const showSuccessMessage = () => {
-        toast.error("Invalid Credentials", {
-          position: "top-center",
-          autoClose: 1500,
-        });
-      };
-
-      showSuccessMessage();
       if (err instanceof z.ZodError) {
-        const newErrors = err.errors.reduce((acc, curr) => {
+        const validationErrors = err.errors.reduce((acc, curr) => {
           acc[curr.path[0]] = curr.message;
           return acc;
         }, {});
-        setErrors(newErrors);
+        setErrors(validationErrors);
       }
-      // console.log("END ", err);
     }
   };
-
-  const [modalOpen, setModalOpen] = useState(true);
 
   const toggleModal = () => {
     if (!modalOpen) {
@@ -147,7 +102,6 @@ const AddUser = ({ refreshUsersList }) => {
       });
       clearFormData();
     }
-
     setModalOpen((prevState) => !prevState);
   };
 
@@ -348,7 +302,7 @@ const AddUser = ({ refreshUsersList }) => {
                     type="submit"
                     className="text-white inline-flex items-center bg-green-700 hover:bg-green-800 w-1/3 justify-center focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
                   >
-                    {isLoading && (
+                    {loading && (
                       <svg
                         aria-hidden="true"
                         role="status"
