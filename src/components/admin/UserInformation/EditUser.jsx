@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { z } from "zod";
 import toast, { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  updateUser,
+  updateUserRole,
+  clearMessages,
+} from "../../../services/redux/slices/admin/userInfoSlice";
 
 const userSchema = z.object({
   username: z.string().min(1, "Name is required"),
@@ -14,13 +20,11 @@ const userSchema = z.object({
 });
 
 const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
-  console.log("user from ", user);
   const userRole = localStorage.getItem("roleId");
-  console.log("userRole ", userRole);
-
-  const token = localStorage.getItem("userToken");
-  const [isLoading, setIsLoading] = useState(false);
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const dispatch = useDispatch();
+  const { loading, error, successMessage } = useSelector(
+    (state) => state.userInfo
+  );
 
   const [formData, setFormData] = useState({
     username: user?.username || "",
@@ -29,8 +33,6 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
     address: user?.address || "",
     pincode: user?.pincode || "",
   });
-
-  console.log("formData ", formData);
 
   const clearFormData = () =>
     setFormData({
@@ -57,97 +59,40 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
     }));
   };
 
-  const updateRole = async (user_id, newRole) => {
-    const updatedRole = newRole === "Admin" ? 1 : 2;
-    const response = await fetch(
-      `${BASE_URL}/api/auth/superadmin-update-role/${user_id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ new_role_id: updatedRole }),
-      }
-    );
-
-    return response;
-  };
-
   const handleSubmit = async (e) => {
-    setIsLoading(true);
-
     e.preventDefault();
-    console.log("e ", e);
-
-    setErrors({
-      username: "",
-      email: "",
-      role: "",
-      address: "",
-      pincode: "",
-    });
+    setErrors({});
 
     try {
       userSchema.parse(formData);
 
-      console.log(
-        "formData.role ",
-        formData.role,
-        "user.role_name ",
-        user.role_name
-      );
-
       if (formData.role !== user.role_name) {
-        const roleResponse = await updateRole(user.user_id, formData.role);
-
-        if (!roleResponse.ok) {
-          throw new Error("Role update failed");
-        }
+        await dispatch(
+          updateUserRole({
+            userId: user.user_id,
+            newRoleId: formData.role === "Admin" ? 1 : 2,
+          })
+        ).unwrap();
       }
 
-      const { role, email, ...newData } = formData;
-      const response = await fetch(
-        `${BASE_URL}/api/auth/admin-updateUsers/${user.user_id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(newData),
-        }
-      );
-
-      if (response.ok) {
-        setIsLoading(false);
-        const data = await response.json();
-        console.info(data.message);
-
-        setTimeout(() => {
-          toggleModal();
-          clearFormData();
-          refreshUsersList();
-        }, 800);
-      } else {
-        setIsLoading(false);
-        const errorData = await response.json();
-        console.error(errorData.message);
-      }
+      const { role, email, ...updatedData } = formData;
+      await dispatch(
+        updateUser({ userId: user.user_id, updatedData })
+      ).unwrap();
+      toast.success("User updated successfully", { position: "top-center" });
+      toggleModal();
+      refreshUsersList();
     } catch (err) {
-      setIsLoading(false);
-      console.error("Invalid Credentials");
-      toast.error("Invalid Credentials", {
-        position: "top-center",
-        autoClose: 1500,
-      });
-
       if (err instanceof z.ZodError) {
-        const newErrors = err.errors.reduce((acc, curr) => {
+        const validationErrors = err.errors.reduce((acc, curr) => {
           acc[curr.path[0]] = curr.message;
           return acc;
         }, {});
-        setErrors(newErrors);
+        setErrors(validationErrors);
+      } else {
+        toast.error(error || "Something went wrong", {
+          position: "top-center",
+        });
       }
     }
   };
@@ -356,7 +301,7 @@ const EditUser = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                     type="submit"
                     className="text-white inline-flex items-center bg-green-700 hover:bg-green-800 w-[40%] justify-center focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
                   >
-                    {isLoading && (
+                    {loading && (
                       <svg
                         aria-hidden="true"
                         role="status"
