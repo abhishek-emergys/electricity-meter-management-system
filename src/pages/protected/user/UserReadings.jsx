@@ -82,12 +82,12 @@ const UserReadings = () => {
   const handleQuerySubmit = async (e) => {
     e.preventDefault();
     if (query.length === 0) {
-      toast.error("Add a query.");
+      toast.error("Add a query");
       return;
     }
 
     if (query.length > 5) {
-      toast.success("Query submitted successfully.");
+      toast.success("Query submitted successfully");
       setShowModal(false);
       setQuery("");
       return;
