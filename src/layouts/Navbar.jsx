@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import toast, { Toaster } from "react-hot-toast";
 import Swal from "sweetalert2";
+import { fetchUserProfile } from "../services/redux/slices/profileSlice";
 
 const Navbar = ({ setUserId }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const Navigate = useNavigate();
-  const userRole = localStorage.getItem("roleId");
+  const dispatch = useDispatch();
 
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const { username, email } = useSelector((state) => state.profile.user);
+  const userRole = localStorage.getItem("roleId");
 
   const dropdownRef = useRef(null);
   const avatarButtonRef = useRef(null);
@@ -19,24 +20,12 @@ const Navbar = ({ setUserId }) => {
     setDropdownOpen((prevState) => !prevState);
   };
 
-  const fetchUser = async () => {
-    const token = localStorage.getItem("userToken");
-    const response = await fetch(`${BASE_URL}/api/auth/user-profile`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        "ngrok-skip-browser-warning": "6024",
-      },
-    });
-    const newData = await response.json();
-    setName(newData.profile[0].username);
-    setEmail(newData.profile[0].email);
-    setUserId(newData.profile[0].user_id);
-  };
-
   useEffect(() => {
-    fetchUser();
+    dispatch(fetchUserProfile()).then((action) => {
+      if (action.payload && setUserId) {
+        setUserId(action.payload.user_id);
+      }
+    });
 
     const handleClickOutside = (event) => {
       if (
@@ -54,7 +43,7 @@ const Navbar = ({ setUserId }) => {
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  }, []);
+  }, [dispatch, setUserId]);
 
   const handleSignOut = async () => {
     const confirm = await Swal.fire({
@@ -107,8 +96,8 @@ const Navbar = ({ setUserId }) => {
             onClick={toggleDropdown}
           >
             <span className="font-medium text-gray-600 dark:text-gray-300">
-              {name
-                .split(" ")
+              {username
+                ?.split(" ")
                 .map((w) => w[0])
                 .join("")}
             </span>
@@ -121,7 +110,7 @@ const Navbar = ({ setUserId }) => {
               className="z-20 mt-[11rem] mr-4 absolute right-0 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
             >
               <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                <div>{name}</div>
+                <div>{username}</div>
                 <div className="font-medium truncate">{email}</div>
               </div>
               <ul
