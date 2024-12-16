@@ -22,14 +22,13 @@ const userSchema = z.object({
   pincode: z.string().min(6).max(6),
 });
 
-const AddUser = ({ refreshUsersList }) => {
+const AddUser = ({ refreshUsersList, modalOpen, setModalOpen }) => {
   const dispatch = useDispatch();
   const { loading, error, successMessage } = useSelector(
     (state) => state.userInfo
   );
 
   const [errors, setErrors] = useState({});
-  const [modalOpen, setModalOpen] = useState(true);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -56,7 +55,6 @@ const AddUser = ({ refreshUsersList }) => {
           duration: 2000,
         });
       }, 1000);
-      toggleModal();
       refreshUsersList();
       dispatch(clearMessages());
     }
@@ -80,6 +78,7 @@ const AddUser = ({ refreshUsersList }) => {
     try {
       userSchema.parse(formData);
       dispatch(addUser(formData));
+      toggleModal();
     } catch (err) {
       if (err instanceof z.ZodError) {
         const validationErrors = err.errors.reduce((acc, curr) => {

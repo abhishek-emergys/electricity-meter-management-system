@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import toast, { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { assignMeter } from "../../../services/redux/slices/admin/readingsSlice";
 
 const userSchema = z.object({
   username: z.string().min(1, "Name is required"),
@@ -10,11 +12,10 @@ const userSchema = z.object({
 });
 
 const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
-  const userRole = localStorage.getItem("roleId");
-
-  const token = localStorage.getItem("userToken");
-  const [isLoading, setIsLoading] = useState(false);
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const dispatch = useDispatch();
+  const { loading, error, successMessage } = useSelector(
+    (state) => state.userInfo
+  );
 
   const [formData, setFormData] = useState({
     username: user?.username || "",
@@ -46,11 +47,23 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    setIsLoading(true);
+  useEffect(() => {
+    if (successMessage) {
+      setTimeout(() => {
+        toast.success(successMessage, {
+          position: "top-center",
+          duration: 2000,
+        });
+      }, 1000);
+      refreshUsersList();
+    }
+    if (error) {
+      toast.error(error, { position: "top-center", duration: 2000 });
+    }
+  }, [successMessage, error, dispatch, refreshUsersList]);
 
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("e ", e);
 
     setErrors({
       username: "",
@@ -61,7 +74,6 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
 
     try {
       userSchema.parse(formData);
-      console.log("formData ", formData);
 
       const updatedFormData = {
         consumption: formData.consumption,
@@ -69,38 +81,18 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
         reading_date: formData.reading_date,
       };
 
-      const response = await fetch(
-        `${BASE_URL}/api/auth/admin-create-meter-reading/${user.user_id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updatedFormData),
-        }
+      dispatch(
+        assignMeter({
+          formData: updatedFormData,
+          userId: user.user_id
+        })
       );
-
-      if (response.ok) {
-        toast.success("Meter Assign Successful.")
-        toggleModal();
-        setIsLoading(false);
-        const data = await response.json();        
-        toast.info(data.message);
-
-        setTimeout(() => {
-          toggleModal();
-          clearFormData();
-          refreshUsersList();
-        }, 800);
-      } else {
-        setIsLoading(false);
-        const errorData = await response.json();
-        toast.error(errorData.message);
-      }
+      toast.success("Meter Assigned Successfully!", {
+        position: "top-center",
+        duration: 2000,
+      });
+      toggleModal();
     } catch (err) {
-      setIsLoading(false);
-
       if (err instanceof z.ZodError) {
         const newErrors = err.errors.reduce((acc, curr) => {
           acc[curr.path[0]] = curr.message;
@@ -282,7 +274,7 @@ const AssignMeter = ({ user, refreshUsersList, modalOpen, setModalOpen }) => {
                     type="submit"
                     className="text-white inline-flex items-center bg-green-700 hover:bg-green-800 w-[40%] justify-center focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
                   >
-                    {isLoading && (
+                    {loading && (
                       <svg
                         aria-hidden="true"
                         role="status"

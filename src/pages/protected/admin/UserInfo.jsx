@@ -82,7 +82,6 @@ const UserInfo = () => {
   };
 
   const fetchAllUsers = async () => {
-    // const token = localStorage.getItem("userToken");
     try {
       toast.loading("Waiting...");
       const response = await fetch(`${BASE_URL}/api/auth/admin-getAllUsers`, {
@@ -169,14 +168,17 @@ const UserInfo = () => {
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
-  const [modalOpen, setModalOpen] = useState(true);
+  const [editModalOpen, setEditModalOpen] = useState(true);
+  const [addModalOpen, setAddModalOpen] = useState(true);
   const [assignModalOpen, setAssignModalOpen] = useState(true);
 
   const toggleModal = (modalName) => {
     if (modalName === "edit") {
-      setModalOpen((prevState) => !prevState);
+      setEditModalOpen((prevState) => !prevState);
     } else if (modalName === "assign") {
       setAssignModalOpen((prevState) => !prevState);
+    } else if (modalName === "add") {
+      setAddModalOpen((prevState) => !prevState);
     }
   };
 
@@ -203,7 +205,11 @@ const UserInfo = () => {
               />
             </div>
             <div className="pb-3">
-              <AddUser refreshUsersList={refreshUsersList} />
+              <AddUser
+                refreshUsersList={refreshUsersList}
+                modalOpen={addModalOpen}
+                setModalOpen={setAddModalOpen}
+              />
             </div>
           </div>
         </div>
@@ -264,11 +270,11 @@ const UserInfo = () => {
                     <td className="px-6 py-2">{user.email}</td>
                     <td className="px-6 py-2 truncate">{user.address}</td>
                     <td className="flex px-6 py-2">
-                      {!modalOpen && (
+                      {!editModalOpen && (
                         <EditUser
                           user={selectedUser}
-                          modalOpen={modalOpen}
-                          setModalOpen={setModalOpen}
+                          modalOpen={editModalOpen}
+                          setModalOpen={setEditModalOpen}
                           refreshUsersList={refreshUsersList}
                         />
                       )}
